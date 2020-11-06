@@ -1,0 +1,13 @@
+ <% if(theme.leancloud.enable) {%> 
+    <span class="leancloud">
+      <span id="<%- url_for(post.path) %>" class="leancloud_url" data-title="<%= page.title %>" data-url="<%- url_for(post.path) %>">
+        <span class="fa-wrap">
+            <i class="fa fa-eye"></i>
+            <span class="leancloud_counter"></span>
+        </span>
+      </span>
+    </span>
+
+ <% } %>
+
+

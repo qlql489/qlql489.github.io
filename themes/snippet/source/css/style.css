@@ -421,6 +421,9 @@ pre {
 .post .featured i {
   transform: rotate(-45deg);
 }
+.post li {
+  list-style-type: none;
+}
 .post .post-head {
   margin-bottom: 0.5em;
   text-align: center;
@@ -519,6 +522,9 @@ pre {
 /*====================================================
   main post content
 ====================================================*/
+.tag_item .title {
+  font-size: 16px;
+}
 .post-content {
   font: 400 16px/1.62 "-apple-system,SF UI Text,Arial,PingFang SC,Hiragino Sans GB,Microsoft YaHei,WenQuanYi Micro Hei,sans-serif", sans-serif;
   color: #333;

@@ -34,4 +34,14 @@
         <i class="fa fa-clock-o"></i>
         <span class="date-meta"><%- date(post.date, format) %></span>
     </span>
+    <% if(theme.visit_counter.page) {%>
+            <span id="<%- url_for(post.path) %>">
+	    <span class="fa-wrap">
+                <i class="fa fa-eye"></i>
+                <span id="busuanzi_value_page_pv"></span>
+            </span>
+	    </span>
+    <% } %>
+
+    <%- partial('_partial/leancloud') %>
 </div>

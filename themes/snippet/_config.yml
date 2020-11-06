@@ -16,7 +16,7 @@ menu:
   url: /categories/成长/
   icon: fa-plug
 - page: 读书
-  URL: /categories/读书/
+  url: /categories/读书/
   icon: fa-book
 - page: 分类
   url: /categories/
@@ -99,7 +99,7 @@ arch_config:
 
 ## 友链设置
 links:
-  - 个人博客: http://www.shenliyang.com
+  - 简书: https://www.jianshu.com/u/c06f6ab9be1f
 
 
 # 主题自定义个性化配置
@@ -120,14 +120,14 @@ defaultImgs:
 excerptLength: 120
 
 ## 代码高亮配置
-highlightTheme: 
+highlightTheme: default
 
 ## ICON配置
 fontAwesome: //cdn.bootcss.com/font-awesome/4.7.0/css/font-awesome.min.css
 
 ## 文章过期提醒功能
 warning:
-  days: 1000
+  days: 10000
   text: '本文于%d天之前发表，文中内容可能已经过时。'
 
 ## 文章内声明
@@ -135,7 +135,7 @@ declaration:
   enable: true
   title: '转载声明'
   tip: |-
-      商业转载请联系作者获得授权,非商业转载请注明出处 © <a href="" target="_blank">Snippet</a>
+      商业转载请联系作者获得授权,非商业转载请注明出处 © <a href="http://blog.nianlun.tech/" target="_blank">年轮的自习室</a>
 
 
 ## 主题评论
@@ -168,10 +168,16 @@ disqus:
 ### 畅言评论(需要ICP备案)
 changyan:
   enable: true
-  appid: cyt8KmUC1
-  conf: prod_855a68d3b3d91855360a6215672a505a
+  appid: cytUR27Rd
+  conf: prod_a94706eef67d4620edff3aa3c98e4bf5
 
 ## 网站访问统计
+visit_counter:
+   site: true // 总访问量和访问人数统计
+   page: false
+
+leancloud: 
+  enable: true
 
 ### 网盟CNZZ统计
 cnzz_analytics: 1263868967

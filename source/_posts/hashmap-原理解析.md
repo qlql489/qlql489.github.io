@@ -19,11 +19,11 @@ HashMap的原理在面试时经常问到，也有很多人分析过，自己也�
 
 ### 链表
 
-链表存储区间离散，占用内存比较宽松，故空间复杂度很小，但时间复杂度很大，达O（N）。链表的特点是：寻址困难，插入和删除容易。
+链表存储区间离散，占用内存比较宽松，故空间复杂度很小，但时间复杂度很大 O(N)。链表的特点是：寻址困难，插入和删除容易。
 
- Hashmap实际上是一个数组和链表的结合体
+Hashmap实际上是一个数组和链表的结合体
 
-![](http://img.blog.csdn.net/20150721153329490?watermark/2/text/aHR0cDovL2Jsb2cuY3Nkbi5uZXQv/font/5a6L5L2T/fontsize/400/fill/I0JBQkFCMA==/dissolve/70/gravity/SouthEast)
+![](http://image.nianlun.tech/2018/11/13/400afa866595ba7ff249abb2e3a43590.jpeg)
 
 hashmap中存数据的过程，通过key得到hashcode，利用hashcode可以得到在数组中的下标，如果下标已经有东西了，就插入到链表的表头。取的话，通过key得到hashcode，确定下标，如果不止一个元素，就通过equals遍历链表取得。
 
@@ -49,7 +49,8 @@ HashMa加载因子 默认0.75
 
 ### hash算法
 hashCode的算法就不讲解了，在hashmap中要找到某个元素，需要根据key的hash值来求得对应数组中的位置。如何计算这个位置就是hash算法。hashmap的数据结构是数组和链表的结合，所以我们当然希望这个hashmap里面的元素位置尽量的分布均匀些，方法就是取模运算，这样元素的分布比较均匀，java中是这么做的
-```
+
+```java
 	/**
      * Returns index for hash code h.
      */
@@ -63,7 +64,8 @@ hashCode的算法就不讲解了，在hashmap中要找到某个元素，需要�
 而如果length为奇数的话，很明显length-1为偶数，它的最后一位是0，这样h&(length-1)的最后一位肯定为0，即只能为偶数，这样任何hash值都只会被散列到数组的偶数下标位置上，这便浪费了近一半的空间。
 
 在存储大容量数据的时候，最好预先指定hashmap的size为2的整数次幂次方。就算不指定的话，也会以大于且最接近指定值大小的2次幂来初始化的
-```
+
+```java
 	/**
      * Constructs an empty <tt>HashMap</tt> with the specified initial
      * capacity and load factor.
@@ -96,7 +98,7 @@ hashCode的算法就不讲解了，在hashmap中要找到某个元素，需要�
 ```
 ### put方法
 
-```
+```java
 public V put(K key, V value) {
         if (key == null)
             return putForNullKey(value);
@@ -138,7 +140,7 @@ private V putForNullKey(V value) {
 如果key为null的话，hash值为0，对象存储在数组中索引为0的位置。即table[0]
 ### get方法
 
-```
+```java
  public V get(Object key) {
         if (key == null)
             return getForNullKey();
@@ -157,8 +159,9 @@ private V putForNullKey(V value) {
 ### resize方法
 在addEntry方法中判断如果map的大小超过阈值则进行扩容  
 
-```
-void addEntry(int hash, K key, V value, int bucketIndex) {
+```java
+
+ void addEntry(int hash, K key, V value, int bucketIndex) {
 	Entry<K,V> e = table[bucketIndex];
         table[bucketIndex] = new Entry<K,V>(hash, key, value, e);
         if (size++ >= threshold)
@@ -197,7 +200,7 @@ void transfer(Entry[] newTable) {
             }
         }
     }
-```    
+```   
 
 transfer方法，将HashMap的全部元素添加到新的HashMap中,并重新计算元素在新的数组中的索引位置，在HashMap数组扩容之后，最消耗性能的点就出现了：原数组中的数据必须重新计算其在新数组中的位置，并放进去，这就是resize，默认的情况下，数组大小16，当元素个数超过16*0.75=12时，就把数组扩展一倍32，重新计算每个元素在数组中的位置，数组的复制非常消耗性能，所以如果预知map的大小，那么初始元素个数能够提高map的性能。
 

@@ -3,4 +3,82 @@
 	<%- js('js/search.js?rev=@@hash') %>
 <%}%>
 
+<% if(theme.visit_counter.site || theme.visit_counter.page){ %>
+    <script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+<% } %>
+
+<% if(theme.leancloud.enable){ %>
+<script src="//cdn.jsdelivr.net/npm/leancloud-storage@3.11.0/dist/av-min.js"></script> 
+ <script>AV.init('v2DVNv9VQV0sIfdci1aopYfm-gzGzoHsz', 'shbgLAtixORY5Au7hI0KwKs5');</script>
+ <script>
+	function addCount (Counter) {
+       	url=$('.leancloud_url').attr('data-url').trim();
+   	    title = $('.leancloud_url').attr('data-title').trim();
+   	    console.log(url+"-"+title);
+        var query=new AV.Query(Counter);
+        console.log('query->'+query);
+	    //use url as unique idnetfication
+	    query.equalTo("url",url);
+	    query.find().then(function(results){
+	    	if(results.length>0)
+	            {
+	                var counter=results[0];
+	                counter.fetchWhenSave(true); //get recent result
+	                counter.increment("count");
+	                counter.save();
+	            }
+	            else
+	            {
+	                var newcounter=new Counter();
+	                newcounter.set("title",title);
+	                newcounter.set("url",url);
+	                newcounter.set("count",1);
+	                newcounter.save().then(function(todo){
+	                consle.log("save success");
+	                },function (error){
+						console.error('Failed to create new object, with error message: ' + error.message);
+	                });
+	               
+	            }
+	    },function(error){
+
+	    });
+	}
+$(function(){
+    var Counter=AV.Object.extend("blogCount");
+    //only increse visit counting when intering a page
+    if ($('.article-title').length == 1){
+    	console.log("hastitle");
+    	 addCount(Counter);
+
+    }
+
+    $('.leancloud_url').each(function(i,k){
+    	var query=new AV.Query(Counter);
+    	var url=$(k).attr('data-url').trim();
+	    // the sum of popular posts
+	    query.equalTo("url",url);
+	    query.find().then(function(results){
+	    		if(results.length==0){
+	    			return;
+	    		}
+				var counter=results[0];
+	            title=counter.get("title");
+	            url=counter.get("url");
+	            time=counter.get("count");
+            //notice the "" in href
+           	    $(k).append(time);
+    },function(error){
+
+    });
+    });
+
+
+
+    
+
+    });
+</script>
+<% } %>
+
 <%- js('js/app.js?rev=@@hash') %>

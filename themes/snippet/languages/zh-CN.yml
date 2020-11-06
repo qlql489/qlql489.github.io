@@ -31,4 +31,7 @@ update: 最后编辑日期
 post_categories: 文章分类
 post_tags: 文章标签
 post_licence: 版权声明
-
+notification: 网站公告
+toc: 文章目录
+visit_counter_uv: 访客数
+visit_counter_pv: 访问量
