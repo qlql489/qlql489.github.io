@@ -110,7 +110,7 @@ public Default() {
 
 我们能否改写参数呢？我们再看看SpringCloud的文档中关于Retry的配置
 
-![](http://upload-images.jianshu.io/upload_images/4702918-fe8f774565deec7e.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240)
+![](http://image.nianlun.tech/2020/11/07/7b1c9b254ba8d97f0ca08be77ec261be.png)
 新建一个配置类
 
 ```java
@@ -164,7 +164,7 @@ ribbon:
   MaxAutoRetries: 0
   MaxAutoRetriesNextServer: 1
 ```
-![图片.png](http://upload-images.jianshu.io/upload_images/4702918-b565689507627852.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240)
+![图片.png](http://image.nianlun.tech/2020/11/07/37f6513797594c85149b21d9ae6fcd42.png)
 
 如果想覆盖ribbon的超时设置可以在刚刚写的FeginConfig里注入下面的bean
 

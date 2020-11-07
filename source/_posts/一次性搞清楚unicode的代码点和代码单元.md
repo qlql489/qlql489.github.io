@@ -7,7 +7,7 @@ tags:
 categories: 程序人生
 ---
 
-![](https://upload-images.jianshu.io/upload_images/4702918-13085078b1f89531.jpeg?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240)
+![4702918-13085078b1f89531](http://image.nianlun.tech/2020/11/07/f87c7e9a9af90c5c80efda27303964c3.jpeg)
 
 最近在处理字符过滤，重新研究了下字符、unicode和代码点的相关知识，首先要说一下编码的基本知识unicode
 ### unicode
