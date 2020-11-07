@@ -211,28 +211,27 @@
 <p>###养成看源码的习惯<br>刚开始的时候我也很惧怕看源码，一个是懒，再就是觉得自己看不懂，后来没办法，代码出问题找不到原因，只能硬着头皮跟进去看，开始的确很费劲，看多了就能了解个大概了，你可以了解到一些技术细节，系统的看源码可以学习别人的编程思想，这里推荐学java的同学有时间去研究一下spring的源码，帮助多多。</p>
 <p>###代码规范<br>代码规范很重要，不要以为代码是给机器读的就写的很随意，代码是给人看的，你不可能在这干一辈子，总有一天有人要接过你的代码，如果你的代码只有你能看懂，你能想到和你交接的人的心情吗，肯定很想从新写一遍，规范其实也不用非常严格，规范不是限制，下面给出一些常见的java规范：</p>
 <ul>
-<li>除了静态变量，大部分标识符使用驼峰法则，标识符能准确的表达出它所代表的意义，不要使用supplier1、 service2、aaa、bbb等，包名小写，类名首字母大写，其他文件首字母都小写。</li>
-<li>状态、类型、参数名称不要直接使用字符串或数字等比较，除非只有一个类中使用   <ul>
-<li><code>这么写别人根本不知道2是什么状态
-if(orderStatus.equels(2){
-   xxxx
-} 
-正确的写法
-public interface OrderStatus{
- public static final int ORDERSTATUS_NEW = 1;//新建
- public static final int ORDERSTATUS_PAID = 2;//已支付
- public static final int ORDERSTATUS_DELIVERY = 3;//已发货
-}
-if(orderStatus.equels(OrderStatus.ORDERSTATUS_PAID){
-   xxxx
-}</code></li>
+<li><p>除了静态变量，大部分标识符使用驼峰法则，标识符能准确的表达出它所代表的意义，不要使用supplier1、 service2、aaa、bbb等，包名小写，类名首字母大写，其他文件首字母都小写。</p>
+</li>
+<li><p>状态、类型、参数名称不要直接使用字符串或数字等比较，除非只有一个类中使用   </p>
+<ul>
+<li><p>这么写别人根本不知道2是什么状态</p>
+ <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line"><span class="keyword">if</span>(orderStatus.equels(<span class="number">2</span>)&#123;</span><br><span class="line">  xxxx</span><br><span class="line">    &#125; </span><br><span class="line">    <span class="comment">// 正确的写法</span></span><br><span class="line">      <span class="keyword">public</span> <span class="class"><span class="keyword">interface</span> <span class="title">OrderStatus</span></span>&#123;</span><br><span class="line">	<span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">final</span> <span class="keyword">int</span> ORDERSTATUS_NEW = <span class="number">1</span>;<span class="comment">//新建</span></span><br><span class="line">	<span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">final</span> <span class="keyword">int</span> ORDERSTATUS_PAID = <span class="number">2</span>;<span class="comment">//已支付</span></span><br><span class="line">    	<span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">final</span> <span class="keyword">int</span> ORDERSTATUS_DELIVERY = <span class="number">3</span>;<span class="comment">//已发货</span></span><br><span class="line">  </span><br><span class="line"><span class="keyword">if</span>(orderStatus.equels(OrderStatus.ORDERSTATUS_PAID)&#123;</span><br><span class="line">   		 xxxx</span><br><span class="line">    &#125; </span><br><span class="line">  `</span><br></pre></td></tr></table></figure>
+</li>
 </ul>
 </li>
-<li>注释掉的测试代码或不用的类请尽快删掉，如果还有用的请添加FIXME+注释，否则时间长了自己也不知道为什么注释掉，代码越来越多不好维护</li>
-<li>编译工具的format要统一，在formatter代码时最好不要全选整个类，而是只format编辑的方法，这样如果大家同时修改一个类而formatter不同会导致更新代码时大量的冲突</li>
-<li>单个方法不要超过300行,类不要超过3000行，重构请参考《重构<em>-</em>改善既有代码的设计》</li>
-<li>尽量缩小变量的作用域，作用域过大可能回引起很多想不到的bug。</li>
-<li>如果代码需要公用，尽量不要复制粘贴，请提到service或util中。</li>
+</ul>
+<ul>
+<li><p>注释掉的测试代码或不用的类请尽快删掉，如果还有用的请添加FIXME+注释，否则时间长了自己也不知道为什么注释掉，代码越来越多不好维护</p>
+</li>
+<li><p>编译工具的format要统一，在formatter代码时最好不要全选整个类，而是只format编辑的方法，这样如果大家同时修改一个类而formatter不同会导致更新代码时大量的冲突</p>
+</li>
+<li><p>单个方法不要超过300行,类不要超过3000行，重构请参考《重构<em>-</em>改善既有代码的设计》</p>
+</li>
+<li><p>尽量缩小变量的作用域，作用域过大可能回引起很多想不到的bug。</p>
+</li>
+<li><p>如果代码需要公用，尽量不要复制粘贴，请提到service或util中。</p>
+</li>
 </ul>
 <p>做程序员对很多人其实很苦，你是否因为有“钱景“加入这个行业，你是否真的有兴趣长时间对着电脑敲代码，你能否因为一个小问题一晚上找不到原因继续坚持，如果你想好了就脚踏实地的努力，我们一起共同学习。</p>
 
