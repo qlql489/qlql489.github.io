@@ -34,7 +34,7 @@ favicon: /favicon.ico
 rss: /atom.xml
 
 ##头像
-headerImage: https://upload.jianshu.io/users/upload_avatars/4702918/7c78a75f-42ef-49ac-86a2-1697b7f0fe4a.jpg?imageMogr2/auto-orient/strip|imageView2/1/w/240/h/240
+headerImage: http://image.nianlun.tech/2020/11/10/cd425637b190f7f5fb2f52492669237a.png
 
 navTitle: 年轮的自习室
 
@@ -174,7 +174,7 @@ changyan:
 ## 网站访问统计
 visit_counter:
    site: true // 总访问量和访问人数统计
-   page: false
+   page: true
 
 leancloud: 
   enable: true
