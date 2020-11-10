@@ -177,7 +177,7 @@ visit_counter:
    page: true
 
 leancloud: 
-  enable: true
+  enable: false
 
 ### 网盟CNZZ统计
 cnzz_analytics: 1263868967
