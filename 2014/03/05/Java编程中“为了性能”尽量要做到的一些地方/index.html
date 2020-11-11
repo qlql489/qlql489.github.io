@@ -1,5 +1,6 @@
 <!DOCTYPE HTML>
 <html lang="zh-CN">
+
 <head>
     <!--Setting-->
     <meta charset="UTF-8">
@@ -13,12 +14,16 @@
     <meta name="format-detection" content="telephone=no,email=no,adress=no">
     <meta name="browsermode" content="application">
     <meta name="screen-orientation" content="portrait">
+    <meta name="theme-version" content="1.2.3">
+    <meta name="root" content="/">
     <link rel="dns-prefetch" href="http://qlql489.github.io">
-    <script src="http://libs.baidu.com/jquery/2.0.0/jquery.min.js"></script>
     <!--SEO-->
 
+<meta name="keywords" content="java" />
 
 
+<meta name="description" content="最近的机器内存又爆满了，除了新增机器内存外，还应该好好review一下我们的代码，有很多代码编写过于随意化，这些不好的习惯或对程序语言的不了解是应该好好打压打压了。
+下面是参考网络资源总结的一些..." />
 
 
 <meta name="robots" content="all" />
@@ -27,52 +32,47 @@
 <meta name="verify" content="all" />
     <!--Title-->
 
+<title>
+    
+    【转载】Java编程中“为了性能”尽量要做到的一些地方 |
+    
+    年轮的自习室
+</title>
 
-<title>【转载】Java编程中“为了性能”尽量要做到的一些地方 | 年轮的自习室</title>
+<link rel="alternate" href="/atom.xml" title="年轮的自习室" type="application/atom+xml">
 
 
-    <link rel="alternate" href="/atom.xml" title="年轮的自习室" type="application/atom+xml">
-
-
-    <link rel="icon" href="/favicon.ico">
+<link rel="icon" href="/favicon.ico">
 
     
 
-
-
-<link rel="stylesheet" href="//cdn.bootcss.com/bootstrap/3.3.4/css/bootstrap.min.css?rev=3.3.4">
-<link rel="stylesheet" href="//cdn.bootcss.com/font-awesome/4.7.0/css/font-awesome.min.css">
+<link rel="stylesheet" href="/css/bootstrap.min.css?rev=3.3.7">
+<link rel="stylesheet" href="/css/font-awesome.min.css?rev=4.7.0">
 <link rel="stylesheet" href="/css/style.css?rev=@@hash">
-
-
-
-
     
-	<div class="hide">
-		<script type="text/javascript">
-			var cnzz_protocol = (("https:" == document.location.protocol) ? " https://" : " http://");document.write(unescape("%3Cspan class='cnzz_stat_icon_1263868967 hide' %3E%3Cscript%20src%3D%22https%3A%2F%2Fs95.cnzz.com%2Fz_stat.php%3Fweb_id%3D1272564536%22%3E%3C%2Fscript%3E%3C/span%3E%3Cscript src='" + cnzz_protocol + "s19.cnzz.com/z_stat.php%3Fid%3D1263868967%26show%3Dpic1' type='text/javascript'%3E%3C/script%3E"));
-		</script>
-	</div>
-
-
-
-
-    <script>
-        var _hmt = _hmt || [];
-        (function() {
-            var hm = document.createElement("script");
-            hm.src = "https://hm.baidu.com/hm.js?6ee9956165458a54c342f6448809323b";
-            var s = document.getElementsByTagName("script")[0];
-            s.parentNode.insertBefore(hm, s);
-        })();
+<div class="hide">
+    <script type="text/javascript">
+    var cnzz_protocol = (("https:" == document.location.protocol) ? " https://" : " http://");
+    document.write(unescape("%3Cspan class='cnzz_stat_icon_1263868967 hide' %3E%3Cscript%20src%3D%22https%3A%2F%2Fs95.cnzz.com%2Fz_stat.php%3Fweb_id%3D1272564536%22%3E%3C%2Fscript%3E%3C/span%3E%3Cscript src='" + cnzz_protocol + "s19.cnzz.com/z_stat.php%3Fid%3D1263868967%26show%3Dpic1' type='text/javascript'%3E%3C/script%3E"));
     </script>
+</div>
+
+
+<script>
+var _hmt = _hmt || [];
+(function() {
+    var hm = document.createElement("script");
+    hm.src = "https://hm.baidu.com/hm.js?6ee9956165458a54c342f6448809323b";
+    var s = document.getElementsByTagName("script")[0];
+    s.parentNode.insertBefore(hm, s);
+})();
+</script>
 
 
 
     
+
 </head>
-
-
 <!--[if lte IE 8]>
 <style>
     html{ font-size: 1em }
@@ -81,9 +81,7 @@
 <!--[if lte IE 9]>
 <div style="ie">你使用的浏览器版本过低，为了你更好的阅读体验，请更新浏览器的版本或者使用其他现代浏览器，比如Chrome、Firefox、Safari等。</div>
 <![endif]-->
-
 <body>
-    
     <nav class="main-navigation">
     <div class="container">
         <div class="row">
@@ -136,21 +134,18 @@
             <div class="row">
                 <main class="col-md-8 main-content m-post">
                     <p id="process"></p>
-<article class="post article-title">
+<article class="post">
     <div class="post-head">
         <h1 id="【转载】Java编程中“为了性能”尽量要做到的一些地方">
             
-	            【转载】Java编程中“为了性能”尽量要做到的一些地方
+            【转载】Java编程中“为了性能”尽量要做到的一些地方
             
         </h1>
         <div class="post-meta">
     
-    
     <span class="categories-meta fa-wrap">
         <i class="fa fa-folder-open-o"></i>
-        <a href="/categories/程序人生">
-            程序人生
-        </a>
+        <a class="category-link" href="/categories/程序人生/">程序人生</a>
     </span>
     
     
@@ -158,35 +153,34 @@
         <i class="fa fa-tags"></i>
         <span class="tags-meta">
             
-            <a href="/tags/java">
-               java
-            </a>
+            <a class="tag-link" href="/tags/java/">java</a>
             
         </span>
     </span>
     
     
+    
     <span class="fa-wrap">
         <i class="fa fa-clock-o"></i>
-        <span class="date-meta">2014/03/05</span>
+        <span class="date-meta">
+            2014/03/05</span>
     </span>
     
-            <span id="/2014/03/05/Java编程中“为了性能”尽量要做到的一些地方/">
-	    <span class="fa-wrap">
-                <i class="fa fa-eye"></i>
-                <span id="busuanzi_value_page_pv"></span>
-            </span>
-	    </span>
+    <span class="fa-wrap">
+        <i class="fa fa-eye"></i>
+        <span id="busuanzi_value_page_pv"></span>
+    </span>
     
-
-     
-
-
-
+    
 </div>
-
-            
-            
+        
+        
+        <p class="fa fa-exclamation-triangle warning">
+            本文于<strong>
+                2442</strong>
+            天之前发表，文中内容可能已经过时。
+        </p>
+        
     </div>
     
     <div class="post-body post-content">
@@ -226,129 +220,71 @@
 <h3 id="慎用异常"><a href="#慎用异常" class="headerlink" title="慎用异常"></a>慎用异常</h3><p>当创建一个异常时，需要收集一个栈跟踪(stack track)，这个栈跟踪用于描述异常是在何处创建的。构建这些栈跟踪时需要为运行时栈做一份快照，正是这一部分开销很大。当需要创建一个 Exception 时，JVM 不得不说：先别动，我想就您现在的样子存一份快照，所以暂时停止入栈和出栈操作。栈跟踪不只包含运行时栈中的一两个元素，而是包含这个栈中的每一个元素。<br>如 果您创建一个 Exception ，就得付出代价。好在捕获异常开销不大，因此可以使用 try-catch 将核心内容包起来。从技术上讲，您甚至可以随意地抛出异常，而不用花费很大的代价。招致性能损失的并不是 throw 操作——尽管在没有预先创建异常的情况下就抛出异常是有点不寻常。真正要花代价的是创建异常。幸运的是，好的编程习惯已教会我们，不应该不管三七二十一就 抛出异常。异常是为异常的情况而设计的，使用时也应该牢记这一原则。</p>
 
     </div>
-
-    <div class="post-footer">   
+    
+    <div class="post-footer">
         <div>
             
-                转载声明：商业转载请联系作者获得授权,非商业转载请注明出处 © <a href="http://blog.nianlun.tech/" target="_blank">年轮的自习室</a>
+            转载声明：
+            商业转载请联系作者获得授权,非商业转载请注明出处 © <a href="http://blog.nianlun.tech/" target="_blank">年轮的自习室</a>
+            
             
         </div>
         <div>
             
-        </div>  
+        </div>
     </div>
 </article>
-
 <div class="article-nav prev-next-wrap clearfix">
     
-        <a href="/2015/07/21/hashmap-原理解析/" class="pre-post btn btn-default"><i class="fa fa-angle-left fa-fw"></i>上一篇</a>
+    <a href="/2015/07/21/hashmap-原理解析/" class="pre-post btn btn-default" title='hashmap 原理解析'>
+        <i class="fa fa-angle-left fa-fw"></i><span class="hidden-lg">上一篇</span>
+        <span class="hidden-xs">
+            hashmap 原理解析</span>
+    </a>
     
     
 </div>
 
-
-    <div id="comments">
-        
-	<!--PC和WAP自适应版-->
+<div id="comments">
+    
+<!--PC和WAP自适应版-->
 <div id="SOHUCS"></div>
 <script type="text/javascript">
-	(function(){var appid='cytUR27Rd';var conf='prod_a94706eef67d4620edff3aa3c98e4bf5';var width=window.innerWidth||document.documentElement.clientWidth;if(width<960){window.document.write('<script id="changyan_mobile_js" charset="utf-8" type="text/javascript" src="https://changyan.sohu.com/upload/mobile/wap-js/changyan_mobile.js?client_id='+appid+'&conf='+conf+'"><\/script>');}else{var loadJs=function(d,a){var c=document.getElementsByTagName("head")[0]||document.head||document.documentElement;var b=document.createElement("script");b.setAttribute("type","text/javascript");b.setAttribute("charset","UTF-8");b.setAttribute("src",d);if(typeof a==="function"){if(window.attachEvent){b.onreadystatechange=function(){var e=b.readyState;if(e==="loaded"||e==="complete"){b.onreadystatechange=null;a()}}}else{b.onload=a}}
-	c.appendChild(b)};loadJs("https://changyan.sohu.com/upload/changyan.js",function(){window.changyan.api.config({appid:appid,conf:conf})});}})();
-</script>	
+(function() {
+    var appid = 'cytUR27Rd';
+    var conf = 'prod_a94706eef67d4620edff3aa3c98e4bf5';
+    var width = window.innerWidth || document.documentElement.clientWidth;
+    if (width < 960) { window.document.write('<script id="changyan_mobile_js" charset="utf-8" type="text/javascript" src="https://changyan.sohu.com/upload/mobile/wap-js/changyan_mobile.js?client_id=' + appid + '&conf=' + conf + '"><\/script>'); } else {
+        var loadJs = function(d, a) {
+            var c = document.getElementsByTagName("head")[0] || document.head || document.documentElement;
+            var b = document.createElement("script");
+            b.setAttribute("type", "text/javascript");
+            b.setAttribute("charset", "UTF-8");
+            b.setAttribute("src", d);
+            if (typeof a === "function") { if (window.attachEvent) { b.onreadystatechange = function() { var e = b.readyState; if (e === "loaded" || e === "complete") { b.onreadystatechange = null;
+                            a() } } } else { b.onload = a } }
+            c.appendChild(b)
+        };
+        loadJs("https://changyan.sohu.com/upload/changyan.js", function() { window.changyan.api.config({ appid: appid, conf: conf }) });
+    }
+})();
+</script>
 
-    </div>
-
-
-
-
+</div>
 
                 </main>
                 
-    <aside class="col-md-4 sidebar">
-        
-        
-    <div class="widget">    
-        <h3 class="title">搜索</h3>
-        <div id="search-form">
-            <div id="result-mask" class="hide"></div>
-            <div class="search-area">
-                
-                    <input id="search-key" type="search" autocomplete="off" placeholder="搜点什么呢?">
-                    <button type="button" class="search-form-submit" id="search-local">搜索</button>
-                
-                
-            </div>
-            <div id="result-wrap" class="hide">
-                <div id="search-result"></div>
-            </div>
-            <div class="hide">
-                <template id="search-tpl">
-                    <div class="item">
-                        <a href="/{path}" title="{title}">
-                            <div class="title">{title}</div>
-                            <div class="content">{content}</div>
-                        </a>
-                    </div>
-                </template>
-            </div>
-        </div>
-    </div>
-
-        
-        
+                    <aside id="article-toc" role="navigation" class="col-md-4">
     <div class="widget">
-        <h3 class="title">分类</h3>
-        <ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/categories/成长/"><i class="fa" aria-hidden="true">成长</i></a><span class="category-list-count">1</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/程序人生/"><i class="fa" aria-hidden="true">程序人生</i></a><span class="category-list-count">6</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/读书/"><i class="fa" aria-hidden="true">读书</i></a><span class="category-list-count">2</span><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/读书/时间管理/"><i class="fa" aria-hidden="true">时间管理</i></a><span class="category-list-count">1</span></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/随笔/"><i class="fa" aria-hidden="true">随笔</i></a><span class="category-list-count">1</span></li></ul>
+        <h3 class="title">
+            文章目录
+        </h3>
+        
+        <ol class="toc"><li class="toc-item toc-level-3"><a class="toc-link" href="#尽量在合适的场合使用单例"><span class="toc-text">尽量在合适的场合使用单例</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#尽量避免随意使用静态变量"><span class="toc-text">尽量避免随意使用静态变量</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#尽量避免过多过常的创建Java对象"><span class="toc-text">尽量避免过多过常的创建Java对象</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#尽量使用final修饰符"><span class="toc-text">尽量使用final修饰符</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#尽量使用局部变量"><span class="toc-text">尽量使用局部变量</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#尽量处理好包装类型和基本类型两者的使用场所"><span class="toc-text">尽量处理好包装类型和基本类型两者的使用场所</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#慎用synchronized，尽量减小synchronize的方法"><span class="toc-text">慎用synchronized，尽量减小synchronize的方法</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#尽量使用StringBuilder和StringBuffer进行字符串连接"><span class="toc-text">尽量使用StringBuilder和StringBuffer进行字符串连接</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#尽量不要使用finalize方法"><span class="toc-text">尽量不要使用finalize方法</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#尽量使用基本数据类型代替对象"><span class="toc-text">尽量使用基本数据类型代替对象</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#单线程应尽量使用HashMap、ArrayList"><span class="toc-text">单线程应尽量使用HashMap、ArrayList</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#尽量合理的创建HashMap"><span class="toc-text">尽量合理的创建HashMap</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#尽量在finally块中释放资源"><span class="toc-text">尽量在finally块中释放资源</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#尽量使用移位来代替’a-b’的操作"><span class="toc-text">尽量使用移位来代替’a/b’的操作</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#尽量确定StringBuffer的容量"><span class="toc-text">尽量确定StringBuffer的容量</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#尽量早释放无用对象的引用"><span class="toc-text">尽量早释放无用对象的引用</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#尽量避免使用二维数组"><span class="toc-text">尽量避免使用二维数组</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#尽量避免使用split"><span class="toc-text">尽量避免使用split</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#ArrayList-amp-LinkedList"><span class="toc-text">ArrayList &amp; LinkedList</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#尽量使用System-arraycopy-代替通过来循环复制数组"><span class="toc-text">尽量使用System.arraycopy ()代替通过来循环复制数组</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#尽量缓存经常使用的对象"><span class="toc-text">尽量缓存经常使用的对象</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#尽量避免非常大的内存分配"><span class="toc-text">尽量避免非常大的内存分配</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#慎用异常"><span class="toc-text">慎用异常</span></a></li></ol>
+        
     </div>
-
-
-        
-        
-    <div class="widget">
-      <h3 class="title">归档</h3>
-        <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/10/"><i class="fa" aria-hidden="true">十月 2018</i></a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/09/"><i class="fa" aria-hidden="true">九月 2018</i></a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/07/"><i class="fa" aria-hidden="true">七月 2017</i></a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/05/"><i class="fa" aria-hidden="true">五月 2017</i></a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/04/"><i class="fa" aria-hidden="true">四月 2017</i></a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/03/"><i class="fa" aria-hidden="true">三月 2017</i></a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/02/"><i class="fa" aria-hidden="true">二月 2017</i></a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/07/"><i class="fa" aria-hidden="true">七月 2015</i></a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/03/"><i class="fa" aria-hidden="true">三月 2014</i></a><span class="archive-list-count">1</span></li></ul>
-    </div>
-
-
-        
-        
-  <div class="widget">
-    <h3 class="title">标签云</h3>
-    <div class="content tag-cloud">
-        <a href="/tags/java/" style="font-size: 20px;">java</a> <a href="/tags/人工智能/" style="font-size: 10px;">人工智能</a> <a href="/tags/写作/" style="font-size: 10px;">写作</a> <a href="/tags/学习/" style="font-size: 10px;">学习</a> <a href="/tags/并发/" style="font-size: 10px;">并发</a> <a href="/tags/结构/" style="font-size: 10px;">结构</a> <a href="/tags/编码/" style="font-size: 10px;">编码</a> <a href="/tags/脾气/" style="font-size: 10px;">脾气</a> <a href="/tags/读书/" style="font-size: 10px;">读书</a> <a href="/tags/随笔/" style="font-size: 15px;">随笔</a>
-    </div>
-  </div>
-
-
-        
-        
-    <div class="widget">
-      <h3 class="title">社交</h3> 
-        <div class="content social">
-            
-	            <a href="//github.com/qlql489" rel="external nofollow" title="Github" target="_blank">
-			    	<i class="git fa fa-git"></i>
-			    </a>
-            
-	            <a href="mailto:qlql489@163.com" rel="external nofollow" title="邮箱" target="_blank">
-			    	<i class="envelope-o fa fa-envelope-o"></i>
-			    </a>
-            
-	            <a href="/" rel="external nofollow" title="联系QQ" target="_blank">
-			    	<i class="qq fa fa-qq"></i>
-			    </a>
-            
-	            <a href="/atom.xml" rel="external nofollow" title="RSS" target="_blank">
-			    	<i class="feed fa fa-feed"></i>
-			    </a>
-            
-        </div>
-    </div>
-
-
-        
-    </aside>
-
+</aside>
+                
             </div>
         </div>
     </section>
@@ -358,39 +294,35 @@
         </div>
     </div>
 </footer>
-
-<a id="back-to-top" class="hide">
-	<i class="fa fa-chevron-up"></i>
+<a id="back-to-top" class="icon-btn hide">
+    <i class="fa fa-chevron-up"></i>
 </a>
-
-
-
-
     <div class="copyright">
     <div class="container">
         <div class="row">
-	    <div class="col-sm-12">
+            <div class="col-sm-12">
                 <div class="busuanzi">
     
-        访问量:
-        <strong id="busuanzi_value_site_pv">
-            <i class="fa fa-spinner fa-spin"></i>
-        </strong>
-        &nbsp; | &nbsp;
-        访客数:
-        <strong id="busuanzi_value_site_uv">
-            <i class="fa fa-spinner fa-spin"></i>
-        </strong>
+    访问量:
+    <strong id="busuanzi_value_site_pv">
+        <i class="fa fa-spinner fa-spin"></i>
+    </strong>
+    &nbsp; | &nbsp;
+    访客数:
+    <strong id="busuanzi_value_site_uv">
+        <i class="fa fa-spinner fa-spin"></i>
+    </strong>
     
 </div>
-
             </div>
-            <div class="col-sm-12"> 
-                <span>Copyright &copy; 2017
-                </span> | 
+            <div class="col-sm-12">
+                <span>Copyright &copy;
+                    2017
+                    
+                </span> |
                 <span>
                     Powered by <a href="//hexo.io" class="copyright-links" target="_blank" rel="nofollow">Hexo</a>
-                </span> | 
+                </span> |
                 <span>
                     Theme by <a href="//github.com/shenliyang/hexo-theme-snippet.git" class="copyright-links" target="_blank" rel="nofollow">Snippet</a>
                 </span>
@@ -401,17 +333,8 @@
 
 
 
-	<script src="/js/search.js?rev=@@hash"></script>
-
-
-
-    <script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
-
-
-
+<script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
 
 <script src="/js/app.js?rev=@@hash"></script>
-
-
 </body>
 </html>
