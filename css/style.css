@@ -637,7 +637,7 @@ pre {
   position: relative;
   clear: both;
   outline: 0;
-  margin: 10px 0;
+  margin: 10px 0 20px;
 }
 .post-content figure img {
   display: block;
