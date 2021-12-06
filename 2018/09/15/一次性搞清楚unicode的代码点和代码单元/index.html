@@ -1,0 +1,372 @@
+<!DOCTYPE HTML>
+<html lang="zh-CN">
+
+<head>
+    <!--Setting-->
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge,chrome=1">
+    <meta http-equiv="Cache-Control" content="no-siteapp">
+    <meta http-equiv="Cache-Control" content="no-transform">
+    <meta name="renderer" content="webkit|ie-comp|ie-stand">
+    <meta name="apple-mobile-web-app-capable" content="年轮的自习室">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black">
+    <meta name="format-detection" content="telephone=no,email=no,adress=no">
+    <meta name="browsermode" content="application">
+    <meta name="screen-orientation" content="portrait">
+    <meta name="theme-version" content="1.2.3">
+    <meta name="root" content="/">
+    <link rel="dns-prefetch" href="http://qlql489.github.io">
+    <!--SEO-->
+
+<meta name="keywords" content="java,编码" />
+
+
+<meta name="description" content="
+最近在处理字符过滤，重新研究了下字符、unicode和代码点的相关知识，首先要说一下编码的基本知识unicode
+unicode
+unicode是计算机科学领域里的一项业界标准，包括字符集、编..." />
+
+
+<meta name="robots" content="all" />
+<meta name="google" content="all" />
+<meta name="googlebot" content="all" />
+<meta name="verify" content="all" />
+    <!--Title-->
+
+<title>
+    
+    一次性搞清楚unicode的代码点和代码单元 |
+    
+    年轮的自习室
+</title>
+
+<link rel="alternate" href="/atom.xml" title="年轮的自习室" type="application/atom+xml">
+
+
+<link rel="icon" href="/favicon.ico">
+
+    
+
+<link rel="stylesheet" href="/css/bootstrap.min.css?rev=3.3.7">
+<link rel="stylesheet" href="/css/font-awesome.min.css?rev=4.7.0">
+<link rel="stylesheet" href="/css/style.css?rev=@@hash">
+    
+<div class="hide">
+    <script type="text/javascript">
+    var cnzz_protocol = (("https:" == document.location.protocol) ? " https://" : " http://");
+    document.write(unescape("%3Cspan class='cnzz_stat_icon_1263868967 hide' %3E%3Cscript%20src%3D%22https%3A%2F%2Fs95.cnzz.com%2Fz_stat.php%3Fweb_id%3D1272564536%22%3E%3C%2Fscript%3E%3C/span%3E%3Cscript src='" + cnzz_protocol + "s19.cnzz.com/z_stat.php%3Fid%3D1263868967%26show%3Dpic1' type='text/javascript'%3E%3C/script%3E"));
+    </script>
+</div>
+
+
+<script>
+var _hmt = _hmt || [];
+(function() {
+    var hm = document.createElement("script");
+    hm.src = "https://hm.baidu.com/hm.js?6ee9956165458a54c342f6448809323b";
+    var s = document.getElementsByTagName("script")[0];
+    s.parentNode.insertBefore(hm, s);
+})();
+</script>
+
+
+
+    
+
+</head>
+<!--[if lte IE 8]>
+<style>
+    html{ font-size: 1em }
+</style>
+<![endif]-->
+<!--[if lte IE 9]>
+<div style="ie">你使用的浏览器版本过低，为了你更好的阅读体验，请更新浏览器的版本或者使用其他现代浏览器，比如Chrome、Firefox、Safari等。</div>
+<![endif]-->
+<body>
+    <nav class="main-navigation">
+    <div class="container">
+        <div class="row">
+            <div class="col-sm-12">
+                <div class="navbar-header"><span class="nav-toggle-button collapsed" data-toggle="collapse" data-target="#main-menu" id="mnav">
+                    <span class="sr-only">Toggle navigation</span>
+                    <i class="fa fa-bars"></i>
+                    </span>
+                </div>
+                <div class="nav_header">
+                    <a>
+                        <img src="http://image.nianlun.tech/2020/11/10/cd425637b190f7f5fb2f52492669237a.png" alt="logo头像">
+                    </a>
+                    <div  class="nav_header_div">
+                        <span>年轮的自习室</span>
+                    </div>
+                </div>
+                <div class="collapse navbar-collapse" id="main-menu">
+                    <ul class="menu">
+                        
+                            <li role="presentation"><a href="/"><i class="fa fa-fw fa-home"></i>首页</a>
+                            </li>
+                        
+                            <li role="presentation"><a href="/categories/程序人生/"><i class="fa fa-fw fa-code"></i>程序人生</a>
+                            </li>
+                        
+                            <li role="presentation"><a href="/categories/成长/"><i class="fa fa-fw fa-plug"></i>成长</a>
+                            </li>
+                        
+                            <li role="presentation"><a href="/categories/读书/"><i class="fa fa-fw fa-book"></i>读书</a>
+                            </li>
+                        
+                            <li role="presentation"><a href="/categories/"><i class="fa fa-fw fa-bars"></i>分类</a>
+                            </li>
+                        
+                            <li role="presentation"><a href="/tags/"><i class="fa fa-fw fa-tags"></i>标签</a>
+                            </li>
+                        
+                            <li role="presentation"><a href="/archives/"><i class="fa fa-fw fa-archive"></i>归档</a>
+                            </li>
+                        
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</nav>
+    <section class="content-wrap">
+        <div class="container">
+            <div class="row">
+                <main class="col-md-8 main-content m-post">
+                    <p id="process"></p>
+<article class="post">
+    <div class="post-head">
+        <h1 id="一次性搞清楚unicode的代码点和代码单元">
+            
+            一次性搞清楚unicode的代码点和代码单元
+            
+        </h1>
+        <div class="post-meta">
+    
+    <span class="categories-meta fa-wrap">
+        <i class="fa fa-folder-open-o"></i>
+        <a class="category-link" href="/categories/程序人生/">程序人生</a>
+    </span>
+    
+    
+    <span class="fa-wrap">
+        <i class="fa fa-tags"></i>
+        <span class="tags-meta">
+            
+            <a class="tag-link" href="/tags/java/">java</a> <a class="tag-link" href="/tags/编码/">编码</a>
+            
+        </span>
+    </span>
+    
+    
+    
+    <span class="fa-wrap">
+        <i class="fa fa-clock-o"></i>
+        <span class="date-meta">
+            2018/09/15</span>
+    </span>
+    
+    <span class="fa-wrap">
+        <i class="fa fa-eye"></i>
+        <span id="busuanzi_value_page_pv"></span>
+    </span>
+    
+    
+</div>
+        
+        
+    </div>
+    
+    <div class="post-body post-content">
+        <p><img src="http://image.nianlun.tech/2020/11/07/f87c7e9a9af90c5c80efda27303964c3.jpeg" alt="4702918-13085078b1f89531"></p>
+<p>最近在处理字符过滤，重新研究了下字符、unicode和代码点的相关知识，首先要说一下编码的基本知识unicode</p>
+<h3 id="unicode"><a href="#unicode" class="headerlink" title="unicode"></a>unicode</h3><blockquote>
+<p>unicode是计算机科学领域里的一项业界标准，包括字符集、编码方案等。计算机采用八比特一个字节，一个字节最大整数是255，还要表示中文一个字也是不够的，至少需要两个字节，为了统一所有的文字编码，unicode为每种语言中的每个字符设定了统一并且唯一的二进制编码，通常用两个字节表示一个字符，所以unicode每个平面可以组合出65535种不同的字符，一共17个平面。</p>
+</blockquote>
+<p>由于英文符号只需要用到低8位，所以其高8位永远是0，因此保存英文文本时会多浪费一倍的空间。</p>
+<p>比如汉子“汉”的unicode,在java中输出</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">System.out.println(<span class="string">"\u5B57"</span>);</span><br></pre></td></tr></table></figure>
+<h3 id="UTF-8"><a href="#UTF-8" class="headerlink" title="UTF-8"></a>UTF-8</h3><p>unicode在计算机中如何存储呢，就是用unicode字符集转换格式，即我们常见的UTF-8、UTF-16等。</p>
+<p>UTF-8就是以字节为单位对unicode进行编码，对不同范围的字符使用不同长度的编码。</p>
+<table>
+<thead>
+<tr>
+<th>Unicode</th>
+<th>Utf-8</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>000000-00007F</td>
+<td>0xxxxxxx</td>
+</tr>
+<tr>
+<td>000080-0007FF</td>
+<td>110xxxxx 10xxxxxx</td>
+</tr>
+<tr>
+<td>000800-00FFFF</td>
+<td>1110xxxx 10xxxxxx 10xxxxxx</td>
+</tr>
+<tr>
+<td>010000-10FFFF</td>
+<td>11110xxx10xxxxxx10xxxxxx10xxxxxx</td>
+</tr>
+</tbody>
+</table>
+<p>Java中的String对象就是一个unicode编码的字符串。</p>
+<p>java中想知道一个字符的unicode编码我们可以通过Integer.toHexString()方法</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">String str = <span class="string">"编"</span>;</span><br><span class="line">StringBuffer sb = <span class="keyword">new</span> StringBuffer();</span><br><span class="line"><span class="keyword">char</span> [] source_char = str.toCharArray();</span><br><span class="line">String unicode = <span class="keyword">null</span>;</span><br><span class="line"><span class="keyword">for</span> (<span class="keyword">int</span> i=<span class="number">0</span>;i&lt;source_char.length;i++) &#123;</span><br><span class="line">    unicode = Integer.toHexString(source_char[i]);</span><br><span class="line">    <span class="keyword">if</span> (unicode.length() &lt;= <span class="number">2</span>) &#123;</span><br><span class="line">        unicode = <span class="string">"00"</span> + unicode;</span><br><span class="line">    &#125;</span><br><span class="line">    sb.append(<span class="string">"\\u"</span> + unicode);</span><br><span class="line">&#125;</span><br><span class="line">System.out.println(sb);</span><br><span class="line">输出\u7f16</span><br></pre></td></tr></table></figure>
+<p>对应的utf-8编码是什么呢?</p>
+<p>7f16在0800-FFFF之间，所以要用3字节模板：1110xxxx 10xxxxxx 10xxxxxx。<br>7f16写成二进制是：0111 1111 0001 0110<br>按三字节模板分段方法分为0111 111100 010110，代替模板中的x，得到11100111 10111100 10010110，即“编”对应的utf-8的编码是e7 bc 96，占3个字节</p>
+<h3 id="codepoint"><a href="#codepoint" class="headerlink" title="codepoint"></a>codepoint</h3><p>unicode的范围从000000 - 10FFFF，char的范围只能是在\u0000到\uffff，也就是标准的 2 字节形式通常称作 UCS-2，在Java中，char类型用UTF-16编码描述一个代码单元，但unicode大于0x10000的部分如何用char表示呢，比如一些emoji：😀</p>
+<p>java的char类型占两个字节，想要表示😀这个表情就需要2个char，看如下代码</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">String testCode = <span class="string">"ab\uD83D\uDE03cd"</span>;</span><br><span class="line"><span class="keyword">int</span> length = testCode.length();</span><br><span class="line"><span class="keyword">int</span> count = testCode.codePointCount(<span class="number">0</span>, testCode.length());</span><br><span class="line"><span class="comment">//length=6</span></span><br><span class="line"><span class="comment">//count=5</span></span><br></pre></td></tr></table></figure>
+<p>第三个和第四个字符合起来代表😀，是一个代码点,<br>如果我们想取到每个代码点做一些判断可以这么写</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">  String testCode = <span class="string">"ab\uD83D\uDE03cd"</span>;</span><br><span class="line">  <span class="keyword">int</span> cpCount = testCode.codePointCount(<span class="number">0</span>, testCode.length());</span><br><span class="line">  <span class="keyword">for</span>(<span class="keyword">int</span> index = <span class="number">0</span>; index &lt; cpCount; ++index) &#123;</span><br><span class="line">      <span class="comment">//这里的i是字符的位置</span></span><br><span class="line">      <span class="keyword">int</span> i = testCode.offsetByCodePoints(<span class="number">0</span>, index);</span><br><span class="line">      <span class="keyword">int</span> codepoint = testCode.codePointAt(i);</span><br><span class="line">  &#125;</span><br><span class="line"><span class="comment">//输出</span></span><br><span class="line">i:<span class="number">0</span> index: <span class="number">0</span> codePoint: <span class="number">97</span></span><br><span class="line">i:<span class="number">1</span> index: <span class="number">1</span> codePoint: <span class="number">98</span></span><br><span class="line">i:<span class="number">2</span> index: <span class="number">2</span> codePoint: <span class="number">128515</span></span><br><span class="line">i:<span class="number">4</span> index: <span class="number">3</span> codePoint: <span class="number">99</span></span><br><span class="line">i:<span class="number">5</span> index: <span class="number">4</span> codePoint: <span class="number">100</span></span><br></pre></td></tr></table></figure>
+<p>也就是按照codePointindex取字符，0取到a，1取到b，2取到\uD83D\uDE03也就是😀，3取到c，4取到d；<br>按照String的index取字符，0取到a，1取到b，2取到\uD83D，3取到\uDE03，4取到c，5取到d。<br>这就是codePointIndex和char的index的区别。</p>
+<p>取到codePoint就可以按照unicode值进行字符的过滤等操作。</p>
+<p>如果有个需求是既可以按照unicode值过滤字符，也能按照正则表达式过滤字符，并且还有白名单，应该如何实现呢。</p>
+<p>其实unicode过滤和正则表达式过滤并不冲突，自己实现自己的过滤就好了，如果需求加入了过滤白名单就会复杂一些，不能直接过滤，需要先检验是否是白名单的index。</p>
+<p>我的思路是记录白名单char的index，正则表达式或其他过滤方式可以获得违规char的index，unicode黑名单的codepointIndex可以转换成char的index，在获取codePont的index时可以判断当前字符是单char字符还是双char字符，双char字符需要添加2个下标，方法如下</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//取到unicode值           </span></span><br><span class="line"><span class="keyword">int</span> codepoint = testCode.codePointAt(i);</span><br><span class="line"><span class="comment">//将unicode值转换成char数组</span></span><br><span class="line"><span class="keyword">char</span>[] chars = Character.toChars(codepoint);</span><br><span class="line">charIndexs.add(pointIndex);</span><br><span class="line"><span class="keyword">if</span> (chars.length &gt; <span class="number">1</span>) &#123;</span><br><span class="line">    <span class="comment">//表示不是单char字符，记录index时同时添加i+1</span></span><br><span class="line">   charIndexs.add(pointIndex + <span class="number">1</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>   //例<br>        String str = “ab\uD83D\uDE03汉字”;<br>想处理emoji，那记录的下标就是2、3，最后和白名单下标比较后统一删除</p>
+<h4 id="如何区别char是一对还是单个"><a href="#如何区别char是一对还是单个" class="headerlink" title="如何区别char是一对还是单个"></a>如何区别char是一对还是单个</h4><p>就之前的例子ab\uD83D\uDE03cd，换种写法\u0061\u0062\uD83D\uDE0\u0063\u0064<br>程序是如何将\uD83D\uDE03解析成一个字符的呢。这就需要Surrogate这个概念，来自UTF-16。</p>
+<p>UTF-16是16bit最多编码65536，那大于65536如何编码？Unicode 标准制定组想出的办法是，从这65536个编码里，拿出2048个，规定他们是「Surrogates」，让他们两个为一组，来代表编号大于65536的那些字符。<br>编号为 U+D800 至 U+DBFF 的规定为「High Surrogates」，共1024个。<br>编号为 U+DC00 至 U+DFFF 的规定为「Low Surrogates」，也是1024个。<br>他们组合出现，就又可以多表示1048576中字符。</p>
+<p>看一下String.codePointAt这个方法</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">static</span> <span class="keyword">int</span> <span class="title">codePointAtImpl</span><span class="params">(<span class="keyword">char</span>[] a, <span class="keyword">int</span> index, <span class="keyword">int</span> limit)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">char</span> c1 = a[index];</span><br><span class="line">    <span class="keyword">if</span> (isHighSurrogate(c1) &amp;&amp; ++index &lt; limit) &#123;</span><br><span class="line">        <span class="keyword">char</span> c2 = a[index];</span><br><span class="line">        <span class="keyword">if</span> (isLowSurrogate(c2)) &#123;</span><br><span class="line">            <span class="keyword">return</span> toCodePoint(c1, c2);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> c1;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>其中有两个方法isHighSurrogate、isLowSurrogate。<br>第一个方法判断是否为高代理项代码单元，即在’\uD800’与’\uDBFF’之间，<br>第二个方法判断是否为低代理项代码单元，即在’\uDC00’与’\uDFFF’之间。</p>
+<p>codePointAtImpl方法判断当前char是高代理项代码单元，下一个是低代理项代码单元，则这两个char是一个codepoint。</p>
+<p>再来看一下unicode转UTF-16的方法</p>
+<blockquote>
+<p>如果U&lt;0x10000，U的UTF-16编码就是U对应的16位无符号整数（为书写简便，下文将16位无符号整数记作WORD）。<br>如果U≥0x10000，我们先计算U’=U-0x10000，然后将U’写成二进制形式：yyyy yyyy yyxx xxxx xxxx，U的UTF-16编码（二进制）就是：110110yyyyyyyyyy 110111xxxxxxxxxx。</p>
+</blockquote>
+<p>还是以U+1F603这个😃为例子，U’=U-0x10000=F603<br>写成2进制就是1111011000000011，不足20位前面补0，<br>变成0000111101-1000000011，替换y和x就是1101100000111101，1101111000000011，最后UTF-16编码就是[d83d，de03] 和上面一样。</p>
+
+    </div>
+    
+    <div class="post-footer">
+        <div>
+            
+            转载声明：
+            商业转载请联系作者获得授权,非商业转载请注明出处 © <a href="http://blog.nianlun.tech/" target="_blank">年轮的自习室</a>
+            
+            
+        </div>
+        <div>
+            
+        </div>
+    </div>
+</article>
+<div class="article-nav prev-next-wrap clearfix">
+    
+    <a href="/2018/10/28/AQS原理解析（一）/" class="pre-post btn btn-default" title='AQS原理解析（一）'>
+        <i class="fa fa-angle-left fa-fw"></i><span class="hidden-lg">上一篇</span>
+        <span class="hidden-xs">
+            AQS原理解析（一）</span>
+    </a>
+    
+    
+    <a href="/2017/07/07/番茄工作法/" class="next-post btn btn-default" title='番茄工作法'>
+        <span class="hidden-lg">下一篇</span>
+        <span class="hidden-xs">
+            番茄工作法</span><i class="fa fa-angle-right fa-fw"></i>
+    </a>
+    
+</div>
+
+<div id="comments">
+    
+<!--PC和WAP自适应版-->
+<div id="SOHUCS"></div>
+<script type="text/javascript">
+(function() {
+    var appid = 'cytUR27Rd';
+    var conf = 'prod_a94706eef67d4620edff3aa3c98e4bf5';
+    var width = window.innerWidth || document.documentElement.clientWidth;
+    if (width < 960) { window.document.write('<script id="changyan_mobile_js" charset="utf-8" type="text/javascript" src="https://changyan.sohu.com/upload/mobile/wap-js/changyan_mobile.js?client_id=' + appid + '&conf=' + conf + '"><\/script>'); } else {
+        var loadJs = function(d, a) {
+            var c = document.getElementsByTagName("head")[0] || document.head || document.documentElement;
+            var b = document.createElement("script");
+            b.setAttribute("type", "text/javascript");
+            b.setAttribute("charset", "UTF-8");
+            b.setAttribute("src", d);
+            if (typeof a === "function") { if (window.attachEvent) { b.onreadystatechange = function() { var e = b.readyState; if (e === "loaded" || e === "complete") { b.onreadystatechange = null;
+                            a() } } } else { b.onload = a } }
+            c.appendChild(b)
+        };
+        loadJs("https://changyan.sohu.com/upload/changyan.js", function() { window.changyan.api.config({ appid: appid, conf: conf }) });
+    }
+})();
+</script>
+
+</div>
+
+                </main>
+                
+                    <aside id="article-toc" role="navigation" class="col-md-4">
+    <div class="widget">
+        <h3 class="title">
+            文章目录
+        </h3>
+        
+        <ol class="toc"><li class="toc-item toc-level-3"><a class="toc-link" href="#unicode"><span class="toc-text">unicode</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#UTF-8"><span class="toc-text">UTF-8</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#codepoint"><span class="toc-text">codepoint</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#如何区别char是一对还是单个"><span class="toc-text">如何区别char是一对还是单个</span></a></li></ol></li></ol>
+        
+    </div>
+</aside>
+                
+            </div>
+        </div>
+    </section>
+    <footer class="main-footer">
+    <div class="container">
+        <div class="row">
+        </div>
+    </div>
+</footer>
+<a id="back-to-top" class="icon-btn hide">
+    <i class="fa fa-chevron-up"></i>
+</a>
+    <div class="copyright">
+    <div class="container">
+        <div class="row">
+            <div class="col-sm-12">
+                <div class="busuanzi">
+    
+    访问量:
+    <strong id="busuanzi_value_site_pv">
+        <i class="fa fa-spinner fa-spin"></i>
+    </strong>
+    &nbsp; | &nbsp;
+    访客数:
+    <strong id="busuanzi_value_site_uv">
+        <i class="fa fa-spinner fa-spin"></i>
+    </strong>
+    
+</div>
+            </div>
+            <div class="col-sm-12">
+                <span>Copyright &copy;
+                    2017
+                    
+                </span> |
+                <span>
+                    Powered by <a href="//hexo.io" class="copyright-links" target="_blank" rel="nofollow">Hexo</a>
+                </span> |
+                <span>
+                    Theme by <a href="//github.com/shenliyang/hexo-theme-snippet.git" class="copyright-links" target="_blank" rel="nofollow">Snippet</a>
+                </span>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+<script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+<script src="/js/app.js?rev=@@hash"></script>
+</body>
+</html>
