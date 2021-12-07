@@ -100,4 +100,4 @@ baidusitemap:
 deploy:
   type: git
   repo: git@github.com:qlql489/qlql489.github.io.git
-  branch: master
+  branch: gh-pages
