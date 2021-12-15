@@ -7,7 +7,7 @@ tags:
 categories: 程序人生
 ---
 
-
+![pexels-monstera-6621468](http://image.nianlun.tech/2021/12/14/c4513f4589b937a9b2afd62e021a6b86.jpg)
 
 上一篇介绍了AQS独占模式的原理，参考链接[AQS原理解析（一）](http://blog.nianlun.tech/2018/10/28/AQS%E5%8E%9F%E7%90%86%E8%A7%A3%E6%9E%90%EF%BC%88%E4%B8%80%EF%BC%89/)，这篇介绍一下AQS的共享模式如何实现的。
 
