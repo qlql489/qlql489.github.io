@@ -3,6 +3,7 @@ title: SpringCloud Fegin超时重试源码
 date: 2017.04.10 16:28:33
 tags:
 	- java
+	- spring
 categories:
 	- 程序人生
 ---
