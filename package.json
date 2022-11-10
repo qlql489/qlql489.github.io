@@ -6,7 +6,7 @@
     "version": "3.5.0"
   },
   "dependencies": {
-    "gulp": "^3.9.1",
+    "gulp": "^4.0.2",
     "gulp-autoprefixer": "^5.0.0",
     "gulp-htmlclean": "^2.7.20",
     "gulp-htmlmin": "^4.0.0",
