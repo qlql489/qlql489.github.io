@@ -1,0 +1,361 @@
+<!DOCTYPE HTML>
+<html lang="zh-CN">
+
+<head>
+    <!--Setting-->
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge,chrome=1">
+    <meta http-equiv="Cache-Control" content="no-siteapp">
+    <meta http-equiv="Cache-Control" content="no-transform">
+    <meta name="renderer" content="webkit|ie-comp|ie-stand">
+    <meta name="apple-mobile-web-app-capable" content="年轮的自习室">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black">
+    <meta name="format-detection" content="telephone=no,email=no,adress=no">
+    <meta name="browsermode" content="application">
+    <meta name="screen-orientation" content="portrait">
+    <meta name="theme-version" content="1.2.3">
+    <meta name="root" content="/">
+    <link rel="dns-prefetch" href="http://qlql489.github.io">
+    <!--SEO-->
+
+<meta name="keywords" content="java,并发" />
+
+
+<meta name="description" content="
+condition的作用condition的使用场景其实很多，涉及到条件判断的并发场景都可以用到，比如： 
+
+阻塞队列的ArrayBlockingQueue中做队列满和空的条件判断
+Cycli..." />
+
+
+<meta name="robots" content="all" />
+<meta name="google" content="all" />
+<meta name="googlebot" content="all" />
+<meta name="verify" content="all" />
+    <!--Title-->
+
+<title>
+    
+    AQS原理解析（三、condition原理） |
+    
+    年轮的自习室
+</title>
+
+<link rel="alternate" href="/atom.xml" title="年轮的自习室" type="application/atom+xml">
+
+
+<link rel="icon" href="/favicon.ico">
+
+    
+
+<link rel="stylesheet" href="/css/bootstrap.min.css?rev=3.3.7">
+<link rel="stylesheet" href="/css/font-awesome.min.css?rev=4.7.0">
+<link rel="stylesheet" href="/css/style.css?rev=@@hash">
+    
+<div class="hide">
+    <script type="text/javascript">
+    var cnzz_protocol = (("https:" == document.location.protocol) ? " https://" : " http://");
+    document.write(unescape("%3Cspan class='cnzz_stat_icon_1263868967 hide' %3E%3Cscript%20src%3D%22https%3A%2F%2Fs95.cnzz.com%2Fz_stat.php%3Fweb_id%3D1272564536%22%3E%3C%2Fscript%3E%3C/span%3E%3Cscript src='" + cnzz_protocol + "s19.cnzz.com/z_stat.php%3Fid%3D1263868967%26show%3Dpic1' type='text/javascript'%3E%3C/script%3E"));
+    </script>
+</div>
+
+
+<script>
+var _hmt = _hmt || [];
+(function() {
+    var hm = document.createElement("script");
+    hm.src = "https://hm.baidu.com/hm.js?6ee9956165458a54c342f6448809323b";
+    var s = document.getElementsByTagName("script")[0];
+    s.parentNode.insertBefore(hm, s);
+})();
+</script>
+
+
+
+    
+
+</head>
+<!--[if lte IE 8]>
+<style>
+    html{ font-size: 1em }
+</style>
+<![endif]-->
+<!--[if lte IE 9]>
+<div style="ie">你使用的浏览器版本过低，为了你更好的阅读体验，请更新浏览器的版本或者使用其他现代浏览器，比如Chrome、Firefox、Safari等。</div>
+<![endif]-->
+<body>
+    <nav class="main-navigation">
+    <div class="container">
+        <div class="row">
+            <div class="col-sm-12">
+                <div class="navbar-header"><span class="nav-toggle-button collapsed" data-toggle="collapse" data-target="#main-menu" id="mnav">
+                    <span class="sr-only">Toggle navigation</span>
+                    <i class="fa fa-bars"></i>
+                    </span>
+                </div>
+                <div class="nav_header">
+                    <a>
+                        <img src="http://image.nianlun.tech/2020/11/10/cd425637b190f7f5fb2f52492669237a.png" alt="logo头像">
+                    </a>
+                    <div  class="nav_header_div">
+                        <span>年轮的自习室</span>
+                    </div>
+                </div>
+                <div class="collapse navbar-collapse" id="main-menu">
+                    <ul class="menu">
+                        
+                            <li role="presentation"><a href="/"><i class="fa fa-fw fa-home"></i>首页</a>
+                            </li>
+                        
+                            <li role="presentation"><a href="/categories/程序人生/"><i class="fa fa-fw fa-code"></i>程序人生</a>
+                            </li>
+                        
+                            <li role="presentation"><a href="/categories/成长/"><i class="fa fa-fw fa-plug"></i>成长</a>
+                            </li>
+                        
+                            <li role="presentation"><a href="/categories/读书/"><i class="fa fa-fw fa-book"></i>读书</a>
+                            </li>
+                        
+                            <li role="presentation"><a href="/categories/"><i class="fa fa-fw fa-bars"></i>分类</a>
+                            </li>
+                        
+                            <li role="presentation"><a href="/tags/"><i class="fa fa-fw fa-tags"></i>标签</a>
+                            </li>
+                        
+                            <li role="presentation"><a href="/archives/"><i class="fa fa-fw fa-archive"></i>归档</a>
+                            </li>
+                        
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</nav>
+    <section class="content-wrap">
+        <div class="container">
+            <div class="row">
+                <main class="col-md-8 main-content m-post">
+                    <p id="process"></p>
+<article class="post">
+    <div class="post-head">
+        <h1 id="AQS原理解析（三、condition原理）">
+            
+            AQS原理解析（三、condition原理）
+            
+        </h1>
+        <div class="post-meta">
+    
+    <span class="categories-meta fa-wrap">
+        <i class="fa fa-folder-open-o"></i>
+        <a class="category-link" href="/categories/程序人生/">程序人生</a>
+    </span>
+    
+    
+    <span class="fa-wrap">
+        <i class="fa fa-tags"></i>
+        <span class="tags-meta">
+            
+            <a class="tag-link" href="/tags/java/">java</a> <a class="tag-link" href="/tags/并发/">并发</a>
+            
+        </span>
+    </span>
+    
+    
+    
+    <span class="fa-wrap">
+        <i class="fa fa-clock-o"></i>
+        <span class="date-meta">
+            2020/03/01</span>
+    </span>
+    
+    <span class="fa-wrap">
+        <i class="fa fa-eye"></i>
+        <span id="busuanzi_value_page_pv"></span>
+    </span>
+    
+    
+</div>
+        
+        
+    </div>
+    
+    <div class="post-body post-content">
+        <p><img src="http://image.nianlun.tech/2022/02/16/3268df139bfcd085d1c25b09df4beef6.jpg" alt="pexels-markus-winkler-3828944"></p>
+<h3 id="condition的作用"><a href="#condition的作用" class="headerlink" title="condition的作用"></a>condition的作用</h3><p>condition的使用场景其实很多，涉及到条件判断的并发场景都可以用到，比如： </p>
+<ul>
+<li>阻塞队列的ArrayBlockingQueue中做队列满和空的条件判断</li>
+<li>CyclicBarrier中做阻塞与唤醒所有线程的判断</li>
+<li>DelayQueue中的阻塞获取队列数据的判断</li>
+<li>线程池ThreadPoolExecutor中awaitTermination方法的条件判断</li>
+</ul>
+<p>condition怎么用呢？</p>
+<p>在使用synchronized时我们可以使用wait()、notify()、notifyAll()方法来调度线程，而condition提供了类似的方法：wait(),signal(),signalAll的功能，并且能够更加精细的控制等待的范围，像上面所说，jdk中使用了很多ReentrantLock和condition的配合来实现线程调度</p>
+<p>我们看一个conditon最常见的使用方式：生产消费者的模型：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br><span class="line">109</span><br><span class="line">110</span><br><span class="line">111</span><br><span class="line">112</span><br><span class="line">113</span><br><span class="line">114</span><br><span class="line">115</span><br><span class="line">116</span><br></pre></td><td class="code"><pre><span class="line">public class ConditionTest &#123;</span><br><span class="line"></span><br><span class="line">    LinkedList&lt;String&gt; lists = new LinkedList&lt;&gt;();</span><br><span class="line"></span><br><span class="line">    Lock lock = new ReentrantLock();</span><br><span class="line"></span><br><span class="line">    //集合是否满的条件判断</span><br><span class="line">    Condition fullCondition = lock.newCondition();</span><br><span class="line"></span><br><span class="line">    //集合是否空的条件判断</span><br><span class="line">    Condition emptyCondition = lock.newCondition();</span><br><span class="line"></span><br><span class="line">    //生产者</span><br><span class="line">    private void product()&#123;</span><br><span class="line">        lock.lock();</span><br><span class="line">        try &#123;</span><br><span class="line">            //假如集合大小为10</span><br><span class="line">            while (lists.size() == 10)&#123;</span><br><span class="line">                System.out.println(&quot;list is full&quot;);</span><br><span class="line">                fullCondition.await();</span><br><span class="line">            &#125;</span><br><span class="line">            //生产一个5位的随机字符串</span><br><span class="line">            String randomString = getRandomString(5);</span><br><span class="line">            lists.add(randomString);</span><br><span class="line">            System.out.println(String.format(&quot;product %s size %d  %s&quot;,randomString,lists.size(),Thread.currentThread().getName()));</span><br><span class="line">            //通知消费者可以消费了</span><br><span class="line">            emptyCondition.signalAll();</span><br><span class="line">        &#125; catch (InterruptedException e) &#123;</span><br><span class="line">            e.printStackTrace();</span><br><span class="line">        &#125; finally &#123;</span><br><span class="line">            lock.unlock();</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    //消费者</span><br><span class="line">    private String consume()&#123;</span><br><span class="line">        lock.lock();</span><br><span class="line">        try&#123;</span><br><span class="line">            while (lists.size() == 0)&#123;</span><br><span class="line">                System.out.println(&quot;list is empty&quot;);</span><br><span class="line">                emptyCondition.await();</span><br><span class="line">            &#125;</span><br><span class="line">            String first = lists.removeFirst();</span><br><span class="line">            //通知生产者可以生产了</span><br><span class="line">            fullCondition.signalAll();</span><br><span class="line">            return first;</span><br><span class="line">        &#125; catch (InterruptedException e) &#123;</span><br><span class="line">            e.printStackTrace();</span><br><span class="line">        &#125;finally &#123;</span><br><span class="line">            lock.unlock();</span><br><span class="line">        &#125;</span><br><span class="line">        return null;</span><br><span class="line">    &#125;</span><br><span class="line">    </span><br><span class="line">    /**</span><br><span class="line">     * 生成随机字符串</span><br><span class="line">     * @param length</span><br><span class="line">     * @return</span><br><span class="line">     */</span><br><span class="line">    public static String getRandomString(int length)&#123;</span><br><span class="line">        String str=&quot;abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789&quot;;</span><br><span class="line">        Random random=new Random();</span><br><span class="line">        StringBuffer sb=new StringBuffer();</span><br><span class="line">        for(int i=0;i&lt;length;i++)&#123;</span><br><span class="line">            int number=random.nextInt(62);</span><br><span class="line">            sb.append(str.charAt(number));</span><br><span class="line">        &#125;</span><br><span class="line">        return sb.toString();</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    public static void main(String[] args) &#123;</span><br><span class="line"></span><br><span class="line">        ConditionTest test = new ConditionTest();</span><br><span class="line"></span><br><span class="line">        ExecutorService executorService = Executors.newCachedThreadPool();</span><br><span class="line"></span><br><span class="line">        //线程个数控制消费的快还是生产的快</span><br><span class="line">        for(int i = 0;i&lt;2;i++)&#123;</span><br><span class="line"></span><br><span class="line">            executorService.submit(()-&gt;&#123;</span><br><span class="line">                System.out.println(Thread.currentThread().getName());</span><br><span class="line">                while (true)&#123;</span><br><span class="line">                    try &#123;</span><br><span class="line">                        Thread.sleep(500);</span><br><span class="line">                    &#125; catch (InterruptedException e) &#123;</span><br><span class="line">                        e.printStackTrace();</span><br><span class="line">                    &#125;</span><br><span class="line">                    test.product();</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;);</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        for(int k = 0;k&lt;1;k++)&#123;</span><br><span class="line">            executorService.submit(()-&gt;&#123;</span><br><span class="line">                System.out.println(&quot;cousumestart&quot;);</span><br><span class="line">                while (true) &#123;</span><br><span class="line">                    try &#123;</span><br><span class="line">                        Thread.sleep(500);</span><br><span class="line">                    &#125; catch (InterruptedException e) &#123;</span><br><span class="line">                        e.printStackTrace();</span><br><span class="line">                    &#125;</span><br><span class="line">                    String consume = test.consume();</span><br><span class="line">                    System.out.println(&quot;consume &quot; + consume+ &quot; &quot;+Thread.currentThread().getName() );</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;);</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        //等待输入，阻塞主线程不退出</span><br><span class="line">        try &#123;</span><br><span class="line">            new BufferedReader(new InputStreamReader(System.in)).readLine();</span><br><span class="line">        &#125; catch (IOException e) &#123;</span><br><span class="line">            e.printStackTrace();</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">    &#125;</span><br></pre></td></tr></table></figure>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line">//部分输出日志</span><br><span class="line">product qeV0r size 7  pool-1-thread-1</span><br><span class="line">product xEUkA size 8  pool-1-thread-2</span><br><span class="line">consume P5Je1 pool-1-thread-3</span><br><span class="line">product rQS1D size 8  pool-1-thread-1</span><br><span class="line">product QcEtf size 9  pool-1-thread-2</span><br><span class="line">consume 2q7Fc pool-1-thread-3</span><br><span class="line">product Z5rBg size 9  pool-1-thread-1</span><br><span class="line">consume UBxBD pool-1-thread-3</span><br><span class="line">product Tr5q2 size 9  pool-1-thread-2</span><br><span class="line">product HXBdE size 10  pool-1-thread-1</span><br><span class="line">list is full</span><br><span class="line">consume aYDNR pool-1-thread-3</span><br><span class="line">product ukjnk size 10  pool-1-thread-2</span><br><span class="line">list is full</span><br><span class="line">consume LBEdA pool-1-thread-3</span><br><span class="line">product iK28H size 10  pool-1-thread-2</span><br><span class="line">list is full</span><br><span class="line">list is full</span><br></pre></td></tr></table></figure>
+<p>可以看到生产者线程有2个，消费者线程有1个，生产和消费的速度相同，用Thread.sleep控制，<br>生产速度大于消费速度，最后集合元素到10个的时候生产者调用<code>fullCondition.await();</code>阻塞，只有消费者消费后通过<code>fullCondition.signalAll();</code>通知生产者继续生产</p>
+<p>同理添加消费者线程数，使消费的速度快与生产，则集合为空时会调用<code>emptyCondition.await();</code>阻塞，生产者生产后回调用<code>emptyCondition.signalAll();</code>通知消费者继续生产</p>
+<p>相较于对象的wait()、notifyAll()方法不同的条件分开判断，颗粒度更小一些，唤醒的线程范围更精准</p>
+<p>再看一下ArrayBlockingQueue的一个例子，在一段时间内阻塞获取队列数据，取不到则返回空：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line">public E poll(long timeout, TimeUnit unit) throws InterruptedException &#123;</span><br><span class="line">      long nanos = unit.toNanos(timeout);</span><br><span class="line">      final ReentrantLock lock = this.lock;</span><br><span class="line">      lock.lockInterruptibly();</span><br><span class="line">      try &#123;</span><br><span class="line">          while (count == 0) &#123;</span><br><span class="line">              if (nanos &lt;= 0)</span><br><span class="line">                  return null;</span><br><span class="line">              //notEmpty 是lock new出来的一个condition</span><br><span class="line">              nanos = notEmpty.awaitNanos(nanos);</span><br><span class="line">          &#125;</span><br><span class="line">          return dequeue();</span><br><span class="line">      &#125; finally &#123;</span><br><span class="line">          lock.unlock();</span><br><span class="line">      &#125;</span><br><span class="line">  &#125;</span><br></pre></td></tr></table></figure>
+<p>condition的使用场景还多，下面我们就一起看看condition的实现原理吧，首先condition需要在AbstractQueuedSynchronizer实现类的</p>
+<h3 id="condition原理解析"><a href="#condition原理解析" class="headerlink" title="condition原理解析"></a>condition原理解析</h3><p>我们知道AQS中维护了一个队列来控制线程的执行，condition中使用了另一个等待队列来实现条件的判断，condition必须在aqs的acquire获取锁后使用，调用condition.await()方法将添加一个node到条件队列中，在调用signal()或signalAll()后将此节点移出condition的等待队列放到锁的等待队列中去竞争锁，取到锁后继续执行后续逻辑。</p>
+<hr>
+<p>condition有以下几个方法</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//将等待时间最长的线程从condition等待队列放到锁的等待队列中</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">final</span> <span class="keyword">void</span> <span class="title">signal</span><span class="params">()</span></span></span><br><span class="line"><span class="function"><span class="comment">//将所有等待线程从condition等待队列放到锁的等待队列中</span></span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">final</span> <span class="keyword">void</span> <span class="title">signalAll</span><span class="params">()</span></span></span><br><span class="line"><span class="function"><span class="comment">//condition的等待方法</span></span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">final</span> <span class="keyword">void</span> <span class="title">await</span><span class="params">()</span> <span class="keyword">throws</span> InterruptedException </span></span><br><span class="line"><span class="function"><span class="comment">//不可中断的wait</span></span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">final</span> <span class="keyword">void</span> <span class="title">awaitUninterruptibly</span><span class="params">()</span></span></span><br><span class="line"><span class="function"><span class="comment">//几个有时间参数的wait方法</span></span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">final</span> <span class="keyword">long</span> <span class="title">awaitNanos</span><span class="params">(<span class="keyword">long</span> nanosTimeout)</span></span></span><br><span class="line"><span class="function">                <span class="keyword">throws</span> InterruptedException</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">final</span> <span class="keyword">boolean</span> <span class="title">awaitUntil</span><span class="params">(Date deadline)</span></span></span><br><span class="line"><span class="function">                <span class="keyword">throws</span> InterruptedException</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">final</span> <span class="keyword">boolean</span> <span class="title">await</span><span class="params">(<span class="keyword">long</span> time, TimeUnit unit)</span></span></span><br><span class="line"><span class="function">                <span class="keyword">throws</span> InterruptedException</span></span><br></pre></td></tr></table></figure>
+<h4 id="先看一下最主要的await方法"><a href="#先看一下最主要的await方法" class="headerlink" title="先看一下最主要的await方法"></a>先看一下最主要的await方法</h4><p>AbstractQueuedSynchronizer.ConditionObject#await()</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">final</span> <span class="keyword">void</span> <span class="title">await</span><span class="params">()</span> <span class="keyword">throws</span> InterruptedException </span>&#123;</span><br><span class="line">  	<span class="comment">//如果当前线程被中断了抛出InterruptedException</span></span><br><span class="line">    <span class="keyword">if</span> (Thread.interrupted())</span><br><span class="line">        <span class="keyword">throw</span> <span class="keyword">new</span> InterruptedException();</span><br><span class="line">    Node node = addConditionWaiter();<span class="comment">//（1）</span></span><br><span class="line">    <span class="keyword">int</span> savedState = fullyRelease(node);<span class="comment">//(2)</span></span><br><span class="line">    <span class="keyword">int</span> interruptMode = <span class="number">0</span>;</span><br><span class="line">    <span class="keyword">while</span> (!isOnSyncQueue(node)) &#123;<span class="comment">//(3)</span></span><br><span class="line">      	<span class="comment">//挂起线程</span></span><br><span class="line">        LockSupport.park(<span class="keyword">this</span>);</span><br><span class="line">      	<span class="comment">//中断情况的判断</span></span><br><span class="line">        <span class="keyword">if</span> ((interruptMode = checkInterruptWhileWaiting(node)) != <span class="number">0</span>)</span><br><span class="line">            <span class="keyword">break</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="comment">//被唤醒后去抢锁，抢到后继续执行</span></span><br><span class="line">    <span class="keyword">if</span> (acquireQueued(node, savedState) &amp;&amp; interruptMode != THROW_IE)</span><br><span class="line">        interruptMode = REINTERRUPT;</span><br><span class="line">    <span class="keyword">if</span> (node.nextWaiter != <span class="keyword">null</span>) <span class="comment">// clean up if cancelled</span></span><br><span class="line">        unlinkCancelledWaiters();</span><br><span class="line">     <span class="comment">//如果阻塞中发生了中断，则抛出异常</span></span><br><span class="line">    <span class="keyword">if</span> (interruptMode != <span class="number">0</span>)</span><br><span class="line">        reportInterruptAfterWait(interruptMode);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h5 id="（1）addConditionWaiter"><a href="#（1）addConditionWaiter" class="headerlink" title="（1）addConditionWaiter"></a>（1）addConditionWaiter</h5><p>在condition等待队列尾部加入一个节点</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">private</span> Node <span class="title">addConditionWaiter</span><span class="params">()</span> </span>&#123;</span><br><span class="line">         Node t = lastWaiter;</span><br><span class="line">         <span class="comment">// 如果最后一个节点不是condition状态（被取消状态）被取消状态是在fullyReleas方法中产生的</span></span><br><span class="line">         <span class="keyword">if</span> (t != <span class="keyword">null</span> &amp;&amp; t.waitStatus != Node.CONDITION) &#123;</span><br><span class="line">             <span class="comment">//从头节点开始将被取消或者超时的节点移出队列</span></span><br><span class="line">             unlinkCancelledWaiters();</span><br><span class="line">             t = lastWaiter;</span><br><span class="line">         &#125;</span><br><span class="line">         Node node = <span class="keyword">new</span> Node(Thread.currentThread(), Node.CONDITION);</span><br><span class="line">       	<span class="comment">//队列为空的情况  </span></span><br><span class="line">     		<span class="keyword">if</span> (t == <span class="keyword">null</span>)</span><br><span class="line">             firstWaiter = node;</span><br><span class="line">         <span class="keyword">else</span></span><br><span class="line">           	<span class="comment">//插入尾节点</span></span><br><span class="line">             t.nextWaiter = node;</span><br><span class="line">         lastWaiter = node;</span><br><span class="line">         <span class="keyword">return</span> node;</span><br><span class="line">     &#125;</span><br></pre></td></tr></table></figure>
+<h5 id="（2）fullyRelease"><a href="#（2）fullyRelease" class="headerlink" title="（2）fullyRelease"></a>（2）fullyRelease</h5><p>能调用wait方法说明已经获取到锁了，fullyRelease方法就是提前调用解锁方法，将自己从lock的队列中移出，并返回当前节点的状态savedState，这里如果释放失败说明当前线程不在持有锁，状态错误，将节点设置成CANCELLED状态</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">final</span> <span class="keyword">int</span> <span class="title">fullyRelease</span><span class="params">(Node node)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">boolean</span> failed = <span class="keyword">true</span>;</span><br><span class="line">    <span class="keyword">try</span> &#123;</span><br><span class="line">        <span class="keyword">int</span> savedState = getState();</span><br><span class="line">        <span class="keyword">if</span> (release(savedState)) &#123;</span><br><span class="line">            failed = <span class="keyword">false</span>;</span><br><span class="line">            <span class="keyword">return</span> savedState;</span><br><span class="line">        &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">            <span class="keyword">throw</span> <span class="keyword">new</span> IllegalMonitorStateException();</span><br><span class="line">        &#125;</span><br><span class="line">    &#125; <span class="keyword">finally</span> &#123;</span><br><span class="line">        <span class="keyword">if</span> (failed)</span><br><span class="line">            node.waitStatus = Node.CANCELLED;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>release方法调用tryRelease释放锁并唤醒首节点，在ReentrantLock的实现中tryRelease会判断当前线程是否获取锁，所以在lock方法范围内使用condition会报IllegalMonitorStateException异常</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">final</span> <span class="keyword">boolean</span> <span class="title">release</span><span class="params">(<span class="keyword">int</span> arg)</span> </span>&#123;</span><br><span class="line">      <span class="keyword">if</span> (tryRelease(arg)) &#123;</span><br><span class="line">          Node h = head;</span><br><span class="line">          <span class="keyword">if</span> (h != <span class="keyword">null</span> &amp;&amp; h.waitStatus != <span class="number">0</span>)</span><br><span class="line">              unparkSuccessor(h);</span><br><span class="line">          <span class="keyword">return</span> <span class="keyword">true</span>;</span><br><span class="line">      &#125;</span><br><span class="line">      <span class="keyword">return</span> <span class="keyword">false</span>;</span><br><span class="line">  &#125;</span><br></pre></td></tr></table></figure>
+<h5 id="（3）isOnSyncQueue"><a href="#（3）isOnSyncQueue" class="headerlink" title="（3）isOnSyncQueue"></a>（3）isOnSyncQueue</h5><p>回到await方法，循环调用isOnSyncQueue判断是否在锁的等待队列中(注意不是condition的等待队列)，不在锁的等待队列中则调用<code>LockSupport.park(this)</code>挂起线程。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">final</span> <span class="keyword">boolean</span> <span class="title">isOnSyncQueue</span><span class="params">(Node node)</span> </span>&#123;</span><br><span class="line">      <span class="keyword">if</span> (node.waitStatus == Node.CONDITION || node.prev == <span class="keyword">null</span>)</span><br><span class="line">          <span class="keyword">return</span> <span class="keyword">false</span>;</span><br><span class="line">      <span class="keyword">if</span> (node.next != <span class="keyword">null</span>) <span class="comment">// If has successor, it must be on queue</span></span><br><span class="line">          <span class="keyword">return</span> <span class="keyword">true</span>;</span><br><span class="line">      </span><br><span class="line">      <span class="keyword">return</span> findNodeFromTail(node);</span><br><span class="line">  &#125;</span><br></pre></td></tr></table></figure>
+<h4 id="awaitNanos方法"><a href="#awaitNanos方法" class="headerlink" title="awaitNanos方法"></a>awaitNanos方法</h4><p>大致逻辑和await相同，就是多了一个时间的判断</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">final</span> <span class="keyword">long</span> <span class="title">awaitNanos</span><span class="params">(<span class="keyword">long</span> nanosTimeout)</span></span></span><br><span class="line"><span class="function">        <span class="keyword">throws</span> InterruptedException </span>&#123;</span><br><span class="line">    <span class="keyword">if</span> (Thread.interrupted())</span><br><span class="line">        <span class="keyword">throw</span> <span class="keyword">new</span> InterruptedException();</span><br><span class="line">    Node node = addConditionWaiter();</span><br><span class="line">    <span class="keyword">int</span> savedState = fullyRelease(node);</span><br><span class="line">    <span class="keyword">final</span> <span class="keyword">long</span> deadline = System.nanoTime() + nanosTimeout;</span><br><span class="line">    <span class="keyword">int</span> interruptMode = <span class="number">0</span>;</span><br><span class="line">    <span class="keyword">while</span> (!isOnSyncQueue(node)) &#123;</span><br><span class="line">    		<span class="comment">//如果时间小于0，直接从condition队列</span></span><br><span class="line">        <span class="keyword">if</span> (nanosTimeout &lt;= <span class="number">0L</span>) &#123;</span><br><span class="line">            transferAfterCancelledWait(node);</span><br><span class="line">            <span class="keyword">break</span>;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="comment">//如果大于自旋的阈值则使用parkNanos设置线程挂起的时间，否则继续自旋</span></span><br><span class="line">        <span class="keyword">if</span> (nanosTimeout &gt;= spinForTimeoutThreshold)</span><br><span class="line">            LockSupport.parkNanos(<span class="keyword">this</span>, nanosTimeout);</span><br><span class="line">        <span class="keyword">if</span> ((interruptMode = checkInterruptWhileWaiting(node)) != <span class="number">0</span>)</span><br><span class="line">            <span class="keyword">break</span>;</span><br><span class="line">        nanosTimeout = deadline - System.nanoTime();</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">if</span> (acquireQueued(node, savedState) &amp;&amp; interruptMode != THROW_IE)</span><br><span class="line">        interruptMode = REINTERRUPT;</span><br><span class="line">    <span class="keyword">if</span> (node.nextWaiter != <span class="keyword">null</span>)</span><br><span class="line">        unlinkCancelledWaiters();</span><br><span class="line">    <span class="keyword">if</span> (interruptMode != <span class="number">0</span>)</span><br><span class="line">        reportInterruptAfterWait(interruptMode);</span><br><span class="line">    <span class="keyword">return</span> deadline - System.nanoTime();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h4 id="signal-方法"><a href="#signal-方法" class="headerlink" title="signal()方法"></a>signal()方法</h4><p>signal的作用是将condition队列中等待时间最长的node转移到锁队列末尾，去重新抢锁<br><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">final</span> <span class="keyword">void</span> <span class="title">signal</span><span class="params">()</span> </span>&#123;</span><br><span class="line">		<span class="comment">//有不同的实现，ReentrantLock中是判断持有锁的是否当前线程</span></span><br><span class="line">    <span class="keyword">if</span> (!isHeldExclusively())</span><br><span class="line">        <span class="keyword">throw</span> <span class="keyword">new</span> IllegalMonitorStateException();</span><br><span class="line">    Node first = firstWaiter;</span><br><span class="line">    <span class="keyword">if</span> (first != <span class="keyword">null</span>)</span><br><span class="line">        doSignal(first);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<h5 id="doSignal"><a href="#doSignal" class="headerlink" title="doSignal"></a>doSignal</h5><p>将condition中等待时间最长的节点调用transferForSignal方法放到锁队列中，循环调用是要寻找第一个不是cancelled状态的节点</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">       </span><br><span class="line">private void doSignal(Node first) &#123;</span><br><span class="line">    do &#123;</span><br><span class="line">        if ( (firstWaiter = first.nextWaiter) == null)</span><br><span class="line">            lastWaiter = null;</span><br><span class="line">        first.nextWaiter = null;</span><br><span class="line">    &#125; while (!transferForSignal(first) &amp;&amp;</span><br><span class="line">             (first = firstWaiter) != null);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h5 id="doSignalAll"><a href="#doSignalAll" class="headerlink" title="doSignalAll"></a>doSignalAll</h5><p>doSignalAll是将所有等待队列中的节点放到锁队列末尾<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">       </span><br><span class="line">private void doSignalAll(Node first) &#123;</span><br><span class="line">    lastWaiter = firstWaiter = null;</span><br><span class="line">    do &#123;</span><br><span class="line">        Node next = first.nextWaiter;</span><br><span class="line">        first.nextWaiter = null;</span><br><span class="line">        transferForSignal(first);</span><br><span class="line">        first = next;</span><br><span class="line">    &#125; while (first != null);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<h5 id="transferForSignal"><a href="#transferForSignal" class="headerlink" title="transferForSignal"></a>transferForSignal</h5><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line">final boolean transferForSignal(Node node) &#123;</span><br><span class="line">  </span><br><span class="line">    //cas设置节点为0状态，如果失败说明节点已经被取消了</span><br><span class="line">    if (!compareAndSetWaitStatus(node, Node.CONDITION, 0))</span><br><span class="line">        return false;</span><br><span class="line"></span><br><span class="line">    /*</span><br><span class="line">     * Splice onto queue and try to set waitStatus of predecessor to</span><br><span class="line">     * indicate that thread is (probably) waiting. If cancelled or</span><br><span class="line">     * attempt to set waitStatus fails, wake up to resync (in which</span><br><span class="line">     * case the waitStatus can be transiently and harmlessly wrong).</span><br><span class="line">     */</span><br><span class="line">    //添加到锁队列中</span><br><span class="line">    Node p = enq(node);</span><br><span class="line">    int ws = p.waitStatus;</span><br><span class="line">    //cancelled状态或者设置SIGNAL状态失败则唤醒此线程</span><br><span class="line">    if (ws &gt; 0 || !compareAndSetWaitStatus(p, ws, Node.SIGNAL))</span><br><span class="line">        LockSupport.unpark(node.thread);</span><br><span class="line">    return true;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>condition中有很多线程与中断的细节处理，有兴趣的可以自己去看看源码</p>
+<p>总结一下：</p>
+<ul>
+<li>condition必须使用在lock中</li>
+<li>condition提供了类似object.wait和notify的通信机制，但支持多个条件队列，使用上更灵活</li>
+<li>condition的原理流程如下<ul>
+<li>线程1获取锁</li>
+<li>线程1调用condition.await()进入condition等待队列并阻塞，释放锁给别的线程</li>
+<li>线程2获取锁，调用condition.signal，将condition等待队列中的线程1所在的node放在锁的等待队列中竞争锁</li>
+</ul>
+</li>
+</ul>
+
+    </div>
+    
+    <div class="post-footer">
+        <div>
+            
+            转载声明：
+            商业转载请联系作者获得授权,非商业转载请注明出处 © <a href="http://blog.nianlun.tech/" target="_blank">年轮的自习室</a>
+            
+            
+        </div>
+        <div>
+            
+        </div>
+    </div>
+</article>
+<div class="article-nav prev-next-wrap clearfix">
+    
+    <a href="/2020/08/10/TransmittableThreadLocal的错误用法/" class="pre-post btn btn-default" title='TransmittableThreadLocal的错误用法'>
+        <i class="fa fa-angle-left fa-fw"></i><span class="hidden-lg">上一篇</span>
+        <span class="hidden-xs">
+            TransmittableThreadLocal的错误用法</span>
+    </a>
+    
+    
+    <a href="/2018/11/18/AQS原理解析（二、共享模式）/" class="next-post btn btn-default" title='AQS原理解析（二、共享模式）'>
+        <span class="hidden-lg">下一篇</span>
+        <span class="hidden-xs">
+            AQS原理解析（二、共享模式）</span><i class="fa fa-angle-right fa-fw"></i>
+    </a>
+    
+</div>
+
+<div id="comments">
+    
+<!--PC和WAP自适应版-->
+<div id="SOHUCS"></div>
+<script type="text/javascript">
+(function() {
+    var appid = 'cytUR27Rd';
+    var conf = 'prod_a94706eef67d4620edff3aa3c98e4bf5';
+    var width = window.innerWidth || document.documentElement.clientWidth;
+    if (width < 960) { window.document.write('<script id="changyan_mobile_js" charset="utf-8" type="text/javascript" src="https://changyan.sohu.com/upload/mobile/wap-js/changyan_mobile.js?client_id=' + appid + '&conf=' + conf + '"><\/script>'); } else {
+        var loadJs = function(d, a) {
+            var c = document.getElementsByTagName("head")[0] || document.head || document.documentElement;
+            var b = document.createElement("script");
+            b.setAttribute("type", "text/javascript");
+            b.setAttribute("charset", "UTF-8");
+            b.setAttribute("src", d);
+            if (typeof a === "function") { if (window.attachEvent) { b.onreadystatechange = function() { var e = b.readyState; if (e === "loaded" || e === "complete") { b.onreadystatechange = null;
+                            a() } } } else { b.onload = a } }
+            c.appendChild(b)
+        };
+        loadJs("https://changyan.sohu.com/upload/changyan.js", function() { window.changyan.api.config({ appid: appid, conf: conf }) });
+    }
+})();
+</script>
+
+</div>
+
+                </main>
+                
+                    <aside id="article-toc" role="navigation" class="col-md-4">
+    <div class="widget">
+        <h3 class="title">
+            文章目录
+        </h3>
+        
+        <ol class="toc"><li class="toc-item toc-level-3"><a class="toc-link" href="#condition的作用"><span class="toc-text">condition的作用</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#condition原理解析"><span class="toc-text">condition原理解析</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#先看一下最主要的await方法"><span class="toc-text">先看一下最主要的await方法</span></a><ol class="toc-child"><li class="toc-item toc-level-5"><a class="toc-link" href="#（1）addConditionWaiter"><span class="toc-text">（1）addConditionWaiter</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#（2）fullyRelease"><span class="toc-text">（2）fullyRelease</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#（3）isOnSyncQueue"><span class="toc-text">（3）isOnSyncQueue</span></a></li></ol></li><li class="toc-item toc-level-4"><a class="toc-link" href="#awaitNanos方法"><span class="toc-text">awaitNanos方法</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#signal-方法"><span class="toc-text">signal()方法</span></a><ol class="toc-child"><li class="toc-item toc-level-5"><a class="toc-link" href="#doSignal"><span class="toc-text">doSignal</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#doSignalAll"><span class="toc-text">doSignalAll</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#transferForSignal"><span class="toc-text">transferForSignal</span></a></li></ol></li></ol></li></ol>
+        
+    </div>
+</aside>
+                
+            </div>
+        </div>
+    </section>
+    <footer class="main-footer">
+    <div class="container">
+        <div class="row">
+        </div>
+    </div>
+</footer>
+<a id="back-to-top" class="icon-btn hide">
+    <i class="fa fa-chevron-up"></i>
+</a>
+    <div class="copyright">
+    <div class="container">
+        <div class="row">
+            <div class="col-sm-12">
+                <div class="busuanzi">
+    
+    访问量:
+    <strong id="busuanzi_value_site_pv">
+        <i class="fa fa-spinner fa-spin"></i>
+    </strong>
+    &nbsp; | &nbsp;
+    访客数:
+    <strong id="busuanzi_value_site_uv">
+        <i class="fa fa-spinner fa-spin"></i>
+    </strong>
+    
+</div>
+            </div>
+            <div class="col-sm-12">
+                <span>Copyright &copy;
+                    2017
+                    
+                </span> |
+                <span>
+                    Powered by <a href="//hexo.io" class="copyright-links" target="_blank" rel="nofollow">Hexo</a>
+                </span> |
+                <span>
+                    Theme by <a href="//github.com/shenliyang/hexo-theme-snippet.git" class="copyright-links" target="_blank" rel="nofollow">Snippet</a>
+                </span>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+<script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+<script src="/js/app.js?rev=@@hash"></script>
+</body>
+</html>

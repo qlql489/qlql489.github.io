@@ -1,0 +1,338 @@
+<!DOCTYPE HTML>
+<html lang="zh-CN">
+
+<head>
+    <!--Setting-->
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge,chrome=1">
+    <meta http-equiv="Cache-Control" content="no-siteapp">
+    <meta http-equiv="Cache-Control" content="no-transform">
+    <meta name="renderer" content="webkit|ie-comp|ie-stand">
+    <meta name="apple-mobile-web-app-capable" content="年轮的自习室">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black">
+    <meta name="format-detection" content="telephone=no,email=no,adress=no">
+    <meta name="browsermode" content="application">
+    <meta name="screen-orientation" content="portrait">
+    <meta name="theme-version" content="1.2.3">
+    <meta name="root" content="/">
+    <link rel="dns-prefetch" href="http://qlql489.github.io">
+    <!--SEO-->
+
+<meta name="keywords" content="java,spring" />
+
+
+<meta name="description" content="springCloud中最重要的就是微服务之间的调用，因为网络延迟或者调用超时会直接导致程序异常，因此超时的配置及处理就至关重要。
+在开发过程中被调用的微服务打断点发现会又多次重试的情况，测试环..." />
+
+
+<meta name="robots" content="all" />
+<meta name="google" content="all" />
+<meta name="googlebot" content="all" />
+<meta name="verify" content="all" />
+    <!--Title-->
+
+<title>
+    
+    SpringCloud Fegin超时重试源码 |
+    
+    年轮的自习室
+</title>
+
+<link rel="alternate" href="/atom.xml" title="年轮的自习室" type="application/atom+xml">
+
+
+<link rel="icon" href="/favicon.ico">
+
+    
+
+<link rel="stylesheet" href="/css/bootstrap.min.css?rev=3.3.7">
+<link rel="stylesheet" href="/css/font-awesome.min.css?rev=4.7.0">
+<link rel="stylesheet" href="/css/style.css?rev=@@hash">
+    
+<div class="hide">
+    <script type="text/javascript">
+    var cnzz_protocol = (("https:" == document.location.protocol) ? " https://" : " http://");
+    document.write(unescape("%3Cspan class='cnzz_stat_icon_1263868967 hide' %3E%3Cscript%20src%3D%22https%3A%2F%2Fs95.cnzz.com%2Fz_stat.php%3Fweb_id%3D1272564536%22%3E%3C%2Fscript%3E%3C/span%3E%3Cscript src='" + cnzz_protocol + "s19.cnzz.com/z_stat.php%3Fid%3D1263868967%26show%3Dpic1' type='text/javascript'%3E%3C/script%3E"));
+    </script>
+</div>
+
+
+<script>
+var _hmt = _hmt || [];
+(function() {
+    var hm = document.createElement("script");
+    hm.src = "https://hm.baidu.com/hm.js?6ee9956165458a54c342f6448809323b";
+    var s = document.getElementsByTagName("script")[0];
+    s.parentNode.insertBefore(hm, s);
+})();
+</script>
+
+
+
+    
+
+</head>
+<!--[if lte IE 8]>
+<style>
+    html{ font-size: 1em }
+</style>
+<![endif]-->
+<!--[if lte IE 9]>
+<div style="ie">你使用的浏览器版本过低，为了你更好的阅读体验，请更新浏览器的版本或者使用其他现代浏览器，比如Chrome、Firefox、Safari等。</div>
+<![endif]-->
+<body>
+    <nav class="main-navigation">
+    <div class="container">
+        <div class="row">
+            <div class="col-sm-12">
+                <div class="navbar-header"><span class="nav-toggle-button collapsed" data-toggle="collapse" data-target="#main-menu" id="mnav">
+                    <span class="sr-only">Toggle navigation</span>
+                    <i class="fa fa-bars"></i>
+                    </span>
+                </div>
+                <div class="nav_header">
+                    <a>
+                        <img src="http://image.nianlun.tech/2020/11/10/cd425637b190f7f5fb2f52492669237a.png" alt="logo头像">
+                    </a>
+                    <div  class="nav_header_div">
+                        <span>年轮的自习室</span>
+                    </div>
+                </div>
+                <div class="collapse navbar-collapse" id="main-menu">
+                    <ul class="menu">
+                        
+                            <li role="presentation"><a href="/"><i class="fa fa-fw fa-home"></i>首页</a>
+                            </li>
+                        
+                            <li role="presentation"><a href="/categories/程序人生/"><i class="fa fa-fw fa-code"></i>程序人生</a>
+                            </li>
+                        
+                            <li role="presentation"><a href="/categories/成长/"><i class="fa fa-fw fa-plug"></i>成长</a>
+                            </li>
+                        
+                            <li role="presentation"><a href="/categories/读书/"><i class="fa fa-fw fa-book"></i>读书</a>
+                            </li>
+                        
+                            <li role="presentation"><a href="/categories/"><i class="fa fa-fw fa-bars"></i>分类</a>
+                            </li>
+                        
+                            <li role="presentation"><a href="/tags/"><i class="fa fa-fw fa-tags"></i>标签</a>
+                            </li>
+                        
+                            <li role="presentation"><a href="/archives/"><i class="fa fa-fw fa-archive"></i>归档</a>
+                            </li>
+                        
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</nav>
+    <section class="content-wrap">
+        <div class="container">
+            <div class="row">
+                <main class="col-md-8 main-content m-post">
+                    <p id="process"></p>
+<article class="post">
+    <div class="post-head">
+        <h1 id="SpringCloud Fegin超时重试源码">
+            
+            SpringCloud Fegin超时重试源码
+            
+        </h1>
+        <div class="post-meta">
+    
+    <span class="categories-meta fa-wrap">
+        <i class="fa fa-folder-open-o"></i>
+        <a class="category-link" href="/categories/程序人生/">程序人生</a>
+    </span>
+    
+    
+    <span class="fa-wrap">
+        <i class="fa fa-tags"></i>
+        <span class="tags-meta">
+            
+            <a class="tag-link" href="/tags/java/">java</a> <a class="tag-link" href="/tags/spring/">spring</a>
+            
+        </span>
+    </span>
+    
+    
+    
+    <span class="fa-wrap">
+        <i class="fa fa-clock-o"></i>
+        <span class="date-meta">
+            2017/04/10</span>
+    </span>
+    
+    <span class="fa-wrap">
+        <i class="fa fa-eye"></i>
+        <span id="busuanzi_value_page_pv"></span>
+    </span>
+    
+    
+</div>
+        
+        
+    </div>
+    
+    <div class="post-body post-content">
+        <p>springCloud中最重要的就是微服务之间的调用，因为网络延迟或者调用超时会直接导致程序异常，因此超时的配置及处理就至关重要。</p>
+<p>在开发过程中被调用的微服务打断点发现会又多次重试的情况，测试环境有的请求响应时间过长也会出现多次请求，网上查询了配置试了一下无果，决定自己看看源码。<br>本人使用的SpringCloud版本是Camden.SR3。</p>
+<p>微服务间调用其实走的是http请求，debug了一下默认的ReadTimeout时间为5s，ConnectTimeout时间为2s，我使用的是Fegin进行微服务间调用，底层用的还是Ribbon，网上提到的配置如下</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">ribbon:</span><br><span class="line">  ReadTimeout: 60000</span><br><span class="line">  ConnectTimeout: 60000</span><br><span class="line">  MaxAutoRetries: 0</span><br><span class="line">  MaxAutoRetriesNextServer: 1</span><br></pre></td></tr></table></figure>
+<p> 超时时间是有效的但是重试的次数无效，如果直接使用ribbon应该是有效的。</p>
+<p>下面开始测试：<br>在微服务B中建立测试方法，sleep 8s 确保请求超时</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@PostMapping</span>(<span class="string">"/testa"</span>)</span><br><span class="line">    <span class="function"><span class="keyword">public</span> Integer <span class="title">testee</span><span class="params">()</span></span>&#123;</span><br><span class="line">        <span class="keyword">try</span> &#123;</span><br><span class="line">            Thread.sleep(<span class="number">8000L</span>);</span><br><span class="line">        &#125; <span class="keyword">catch</span> (InterruptedException e) &#123;</span><br><span class="line">            e.printStackTrace();</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">return</span> <span class="number">9</span>;</span><br><span class="line">    &#125;</span><br></pre></td></tr></table></figure>
+<p>在微服务A中使用fegin调用此方法时看到有异常</p>
+<p>看到在SynchronousMethodHandler中请求的方法</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="function">Object <span class="title">executeAndDecode</span><span class="params">(RequestTemplate template)</span> <span class="keyword">throws</span> Throwable </span>&#123;</span><br><span class="line">    Request request = targetRequest(template);</span><br><span class="line">    <span class="keyword">if</span> (logLevel != Logger.Level.NONE) &#123;</span><br><span class="line">      logger.logRequest(metadata.configKey(), logLevel, request);</span><br><span class="line">    &#125;</span><br><span class="line">    Response response;</span><br><span class="line">    <span class="keyword">long</span> start = System.nanoTime();</span><br><span class="line">    <span class="keyword">try</span> &#123;</span><br><span class="line">      response = client.execute(request, options);</span><br><span class="line">      response.toBuilder().request(request).build();</span><br><span class="line">    &#125; <span class="keyword">catch</span> (IOException e) &#123;</span><br><span class="line">      <span class="keyword">if</span> (logLevel != Logger.Level.NONE) &#123;</span><br><span class="line">        logger.logIOException(metadata.configKey(), logLevel, e, elapsedTime(start));</span><br><span class="line">      &#125;</span><br><span class="line">     <span class="comment">//出现异常后抛出RetryableException</span></span><br><span class="line">      <span class="keyword">throw</span> errorExecuting(request, e);</span><br><span class="line">    &#125;</span><br></pre></td></tr></table></figure>
+<p>出现异常后调用 throw errorExecuting(request, e) 抛出异常</p>
+<p>在调用executeAndDecode的地方catch</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Override</span></span><br><span class="line">  <span class="function"><span class="keyword">public</span> Object <span class="title">invoke</span><span class="params">(Object[] argv)</span> <span class="keyword">throws</span> Throwable </span>&#123;</span><br><span class="line">    RequestTemplate template = buildTemplateFromArgs.create(argv);</span><br><span class="line">    Retryer retryer = <span class="keyword">this</span>.retryer.clone();</span><br><span class="line">    <span class="keyword">while</span> (<span class="keyword">true</span>) &#123;</span><br><span class="line">      <span class="keyword">try</span> &#123;</span><br><span class="line">        <span class="keyword">return</span> executeAndDecode(template);</span><br><span class="line">      &#125; <span class="keyword">catch</span> (RetryableException e) &#123;</span><br><span class="line">         <span class="comment">//重试的地方</span></span><br><span class="line">        retryer.continueOrPropagate(e);</span><br><span class="line">        <span class="keyword">if</span> (logLevel != Logger.Level.NONE) &#123;</span><br><span class="line">          logger.logRetry(metadata.configKey(), logLevel);</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">continue</span>;</span><br><span class="line">      &#125;</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br></pre></td></tr></table></figure>
+<p>retryer.continueOrPropagate(e); 这句就是关键继续跟进</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">continueOrPropagate</span><span class="params">(RetryableException e)</span> </span>&#123;</span><br><span class="line">        <span class="comment">//maxAttempts是构造方法传进来的大于重试次数抛出异常,否则继续循环执行请求</span></span><br><span class="line">      <span class="keyword">if</span> (attempt++ &gt;= maxAttempts) &#123;</span><br><span class="line">        <span class="keyword">throw</span> e;</span><br><span class="line">      &#125;</span><br><span class="line">     ....</span><br></pre></td></tr></table></figure>
+<p>默认的Retryer构造器</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="title">Default</span><span class="params">()</span> </span>&#123;</span><br><span class="line">      <span class="keyword">this</span>(<span class="number">100</span>, SECONDS.toMillis(<span class="number">1</span>), <span class="number">5</span>);</span><br><span class="line">    &#125;</span><br></pre></td></tr></table></figure>
+<p>第一个参数period是请求重试的间隔算法参数，第二个参数maxPeriod 是请求间隔最大时间，第三个参数是重试的次数。算法如下：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">long</span> <span class="title">nextMaxInterval</span><span class="params">()</span> </span>&#123;</span><br><span class="line">     <span class="keyword">long</span> interval = (<span class="keyword">long</span>) (period * Math.pow(<span class="number">1.5</span>, attempt - <span class="number">1</span>));</span><br><span class="line">     <span class="keyword">return</span> interval &gt; maxPeriod ? maxPeriod : interval;</span><br><span class="line">   &#125;</span><br></pre></td></tr></table></figure>
+<p>我们能否改写参数呢？我们再看看SpringCloud的文档中关于Retry的配置</p>
+<p><img src="http://image.nianlun.tech/2020/11/07/7b1c9b254ba8d97f0ca08be77ec261be.png" alt=""><br>新建一个配置类</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Configuration</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">FeginConfig</span> </span>&#123;</span><br><span class="line">    <span class="meta">@Bean</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> Retryer <span class="title">feginRetryer</span><span class="params">()</span></span>&#123;</span><br><span class="line">        Retryer retryer = <span class="keyword">new</span> Retryer.Default(<span class="number">100</span>, SECONDS.toMillis(<span class="number">10</span>), <span class="number">3</span>);</span><br><span class="line">        <span class="keyword">return</span> retryer;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>在feginClient是加入configuration的配置</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@FeignClient</span>(value = <span class="string">"fund-server"</span>,fallback = FundClientHystrix.class,configuration = FeginConfig.class)</span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">interface</span> <span class="title">FundClient</span></span></span><br></pre></td></tr></table></figure>
+<p>重启重试，只调用了一次，Fegin重试次数解决。<br>我们再看看请求超时这里的参数</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Override</span></span><br><span class="line">	<span class="function"><span class="keyword">public</span> Response <span class="title">execute</span><span class="params">(Request request, Request.Options options)</span> <span class="keyword">throws</span> IOException </span>&#123;</span><br><span class="line">		<span class="keyword">try</span> &#123;</span><br><span class="line">			URI asUri = URI.create(request.url());</span><br><span class="line">			String clientName = asUri.getHost();</span><br><span class="line">			URI uriWithoutHost = cleanUrl(request.url(), clientName);</span><br><span class="line">			FeignLoadBalancer.RibbonRequest ribbonRequest = <span class="keyword">new</span> FeignLoadBalancer.RibbonRequest(</span><br><span class="line">					<span class="keyword">this</span>.delegate, request, uriWithoutHost);</span><br><span class="line">                     <span class="comment">//请求参数</span></span><br><span class="line">			IClientConfig requestConfig = getClientConfig(options, clientName);</span><br><span class="line">			<span class="keyword">return</span> lbClient(clientName).executeWithLoadBalancer(ribbonRequest,</span><br><span class="line">					requestConfig).toResponse();</span><br><span class="line">		&#125;</span><br><span class="line">		<span class="keyword">catch</span> (ClientException e) &#123;</span><br><span class="line">			IOException io = findIOException(e);</span><br><span class="line">			<span class="keyword">if</span> (io != <span class="keyword">null</span>) &#123;</span><br><span class="line">				<span class="keyword">throw</span> io;</span><br><span class="line">			&#125;</span><br><span class="line">			<span class="keyword">throw</span> <span class="keyword">new</span> RuntimeException(e);</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br></pre></td></tr></table></figure>
+<p>其中ReadTimeout 和 ConnectTimeout 读取的就是ribbon的配置，再来看一眼</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">ribbon:</span><br><span class="line">  ReadTimeout: 60000</span><br><span class="line">  ConnectTimeout: 60000</span><br><span class="line">  MaxAutoRetries: 0</span><br><span class="line">  MaxAutoRetriesNextServer: 1</span><br></pre></td></tr></table></figure>
+<p><img src="http://image.nianlun.tech/2020/11/07/37f6513797594c85149b21d9ae6fcd42.png" alt="图片.png"></p>
+<p>如果想覆盖ribbon的超时设置可以在刚刚写的FeginConfig里注入下面的bean</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Bean</span></span><br><span class="line"><span class="keyword">public</span> Request.<span class="function">Options <span class="title">feginOption</span><span class="params">()</span></span>&#123;</span><br><span class="line">    Request.Options option = <span class="keyword">new</span> Request.Options(<span class="number">7000</span>,<span class="number">7000</span>);</span><br><span class="line">    <span class="keyword">return</span> option;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>总结：使用开源的东西在弄不清问题出在哪时最好能看看源码，对原理的实现以及自己的编码思路都有很大的提升。</p>
+
+    </div>
+    
+    <div class="post-footer">
+        <div>
+            
+            转载声明：
+            商业转载请联系作者获得授权,非商业转载请注明出处 © <a href="http://blog.nianlun.tech/" target="_blank">年轮的自习室</a>
+            
+            
+        </div>
+        <div>
+            
+        </div>
+    </div>
+</article>
+<div class="article-nav prev-next-wrap clearfix">
+    
+    <a href="/2017/04/26/没有人能伤害你，除非你愿意/" class="pre-post btn btn-default" title='没有人能伤害你,除非你愿意'>
+        <i class="fa fa-angle-left fa-fw"></i><span class="hidden-lg">上一篇</span>
+        <span class="hidden-xs">
+            没有人能伤害你,除非你愿意</span>
+    </a>
+    
+    
+    <a href="/2017/03/21/世界在加速，你还在原地踏步/" class="next-post btn btn-default" title='世界在加速，你还在原地踏步'>
+        <span class="hidden-lg">下一篇</span>
+        <span class="hidden-xs">
+            世界在加速，你还在原地踏步</span><i class="fa fa-angle-right fa-fw"></i>
+    </a>
+    
+</div>
+
+<div id="comments">
+    
+<!--PC和WAP自适应版-->
+<div id="SOHUCS"></div>
+<script type="text/javascript">
+(function() {
+    var appid = 'cytUR27Rd';
+    var conf = 'prod_a94706eef67d4620edff3aa3c98e4bf5';
+    var width = window.innerWidth || document.documentElement.clientWidth;
+    if (width < 960) { window.document.write('<script id="changyan_mobile_js" charset="utf-8" type="text/javascript" src="https://changyan.sohu.com/upload/mobile/wap-js/changyan_mobile.js?client_id=' + appid + '&conf=' + conf + '"><\/script>'); } else {
+        var loadJs = function(d, a) {
+            var c = document.getElementsByTagName("head")[0] || document.head || document.documentElement;
+            var b = document.createElement("script");
+            b.setAttribute("type", "text/javascript");
+            b.setAttribute("charset", "UTF-8");
+            b.setAttribute("src", d);
+            if (typeof a === "function") { if (window.attachEvent) { b.onreadystatechange = function() { var e = b.readyState; if (e === "loaded" || e === "complete") { b.onreadystatechange = null;
+                            a() } } } else { b.onload = a } }
+            c.appendChild(b)
+        };
+        loadJs("https://changyan.sohu.com/upload/changyan.js", function() { window.changyan.api.config({ appid: appid, conf: conf }) });
+    }
+})();
+</script>
+
+</div>
+
+                </main>
+                
+                    <aside id="article-toc" role="navigation" class="col-md-4">
+    <div class="widget">
+        <h3 class="title">
+            文章目录
+        </h3>
+        
+        <p>暂无目录</p>
+        
+    </div>
+</aside>
+                
+            </div>
+        </div>
+    </section>
+    <footer class="main-footer">
+    <div class="container">
+        <div class="row">
+        </div>
+    </div>
+</footer>
+<a id="back-to-top" class="icon-btn hide">
+    <i class="fa fa-chevron-up"></i>
+</a>
+    <div class="copyright">
+    <div class="container">
+        <div class="row">
+            <div class="col-sm-12">
+                <div class="busuanzi">
+    
+    访问量:
+    <strong id="busuanzi_value_site_pv">
+        <i class="fa fa-spinner fa-spin"></i>
+    </strong>
+    &nbsp; | &nbsp;
+    访客数:
+    <strong id="busuanzi_value_site_uv">
+        <i class="fa fa-spinner fa-spin"></i>
+    </strong>
+    
+</div>
+            </div>
+            <div class="col-sm-12">
+                <span>Copyright &copy;
+                    2017
+                    
+                </span> |
+                <span>
+                    Powered by <a href="//hexo.io" class="copyright-links" target="_blank" rel="nofollow">Hexo</a>
+                </span> |
+                <span>
+                    Theme by <a href="//github.com/shenliyang/hexo-theme-snippet.git" class="copyright-links" target="_blank" rel="nofollow">Snippet</a>
+                </span>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+<script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+<script src="/js/app.js?rev=@@hash"></script>
+</body>
+</html>

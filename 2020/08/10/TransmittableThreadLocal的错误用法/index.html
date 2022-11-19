@@ -1,0 +1,332 @@
+<!DOCTYPE HTML>
+<html lang="zh-CN">
+
+<head>
+    <!--Setting-->
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge,chrome=1">
+    <meta http-equiv="Cache-Control" content="no-siteapp">
+    <meta http-equiv="Cache-Control" content="no-transform">
+    <meta name="renderer" content="webkit|ie-comp|ie-stand">
+    <meta name="apple-mobile-web-app-capable" content="年轮的自习室">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black">
+    <meta name="format-detection" content="telephone=no,email=no,adress=no">
+    <meta name="browsermode" content="application">
+    <meta name="screen-orientation" content="portrait">
+    <meta name="theme-version" content="1.2.3">
+    <meta name="root" content="/">
+    <link rel="dns-prefetch" href="http://qlql489.github.io">
+    <!--SEO-->
+
+<meta name="keywords" content="java,线程" />
+
+
+<meta name="description" content="
+前言ThreadLocal能够在单个线程中传递参数，使用可以用在系统参数的传递或者在链路跟踪中传递trace相关信息，需要说明的是单单使用ThreadLocal是不会出现ThreadLocal..." />
+
+
+<meta name="robots" content="all" />
+<meta name="google" content="all" />
+<meta name="googlebot" content="all" />
+<meta name="verify" content="all" />
+    <!--Title-->
+
+<title>
+    
+    TransmittableThreadLocal的错误用法 |
+    
+    年轮的自习室
+</title>
+
+<link rel="alternate" href="/atom.xml" title="年轮的自习室" type="application/atom+xml">
+
+
+<link rel="icon" href="/favicon.ico">
+
+    
+
+<link rel="stylesheet" href="/css/bootstrap.min.css?rev=3.3.7">
+<link rel="stylesheet" href="/css/font-awesome.min.css?rev=4.7.0">
+<link rel="stylesheet" href="/css/style.css?rev=@@hash">
+    
+<div class="hide">
+    <script type="text/javascript">
+    var cnzz_protocol = (("https:" == document.location.protocol) ? " https://" : " http://");
+    document.write(unescape("%3Cspan class='cnzz_stat_icon_1263868967 hide' %3E%3Cscript%20src%3D%22https%3A%2F%2Fs95.cnzz.com%2Fz_stat.php%3Fweb_id%3D1272564536%22%3E%3C%2Fscript%3E%3C/span%3E%3Cscript src='" + cnzz_protocol + "s19.cnzz.com/z_stat.php%3Fid%3D1263868967%26show%3Dpic1' type='text/javascript'%3E%3C/script%3E"));
+    </script>
+</div>
+
+
+<script>
+var _hmt = _hmt || [];
+(function() {
+    var hm = document.createElement("script");
+    hm.src = "https://hm.baidu.com/hm.js?6ee9956165458a54c342f6448809323b";
+    var s = document.getElementsByTagName("script")[0];
+    s.parentNode.insertBefore(hm, s);
+})();
+</script>
+
+
+
+    
+
+</head>
+<!--[if lte IE 8]>
+<style>
+    html{ font-size: 1em }
+</style>
+<![endif]-->
+<!--[if lte IE 9]>
+<div style="ie">你使用的浏览器版本过低，为了你更好的阅读体验，请更新浏览器的版本或者使用其他现代浏览器，比如Chrome、Firefox、Safari等。</div>
+<![endif]-->
+<body>
+    <nav class="main-navigation">
+    <div class="container">
+        <div class="row">
+            <div class="col-sm-12">
+                <div class="navbar-header"><span class="nav-toggle-button collapsed" data-toggle="collapse" data-target="#main-menu" id="mnav">
+                    <span class="sr-only">Toggle navigation</span>
+                    <i class="fa fa-bars"></i>
+                    </span>
+                </div>
+                <div class="nav_header">
+                    <a>
+                        <img src="http://image.nianlun.tech/2020/11/10/cd425637b190f7f5fb2f52492669237a.png" alt="logo头像">
+                    </a>
+                    <div  class="nav_header_div">
+                        <span>年轮的自习室</span>
+                    </div>
+                </div>
+                <div class="collapse navbar-collapse" id="main-menu">
+                    <ul class="menu">
+                        
+                            <li role="presentation"><a href="/"><i class="fa fa-fw fa-home"></i>首页</a>
+                            </li>
+                        
+                            <li role="presentation"><a href="/categories/程序人生/"><i class="fa fa-fw fa-code"></i>程序人生</a>
+                            </li>
+                        
+                            <li role="presentation"><a href="/categories/成长/"><i class="fa fa-fw fa-plug"></i>成长</a>
+                            </li>
+                        
+                            <li role="presentation"><a href="/categories/读书/"><i class="fa fa-fw fa-book"></i>读书</a>
+                            </li>
+                        
+                            <li role="presentation"><a href="/categories/"><i class="fa fa-fw fa-bars"></i>分类</a>
+                            </li>
+                        
+                            <li role="presentation"><a href="/tags/"><i class="fa fa-fw fa-tags"></i>标签</a>
+                            </li>
+                        
+                            <li role="presentation"><a href="/archives/"><i class="fa fa-fw fa-archive"></i>归档</a>
+                            </li>
+                        
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</nav>
+    <section class="content-wrap">
+        <div class="container">
+            <div class="row">
+                <main class="col-md-8 main-content m-post">
+                    <p id="process"></p>
+<article class="post">
+    <div class="post-head">
+        <h1 id="TransmittableThreadLocal的错误用法">
+            
+            TransmittableThreadLocal的错误用法
+            
+        </h1>
+        <div class="post-meta">
+    
+    <span class="categories-meta fa-wrap">
+        <i class="fa fa-folder-open-o"></i>
+        <a class="category-link" href="/categories/程序人生/">程序人生</a>
+    </span>
+    
+    
+    <span class="fa-wrap">
+        <i class="fa fa-tags"></i>
+        <span class="tags-meta">
+            
+            <a class="tag-link" href="/tags/java/">java</a> <a class="tag-link" href="/tags/线程/">线程</a>
+            
+        </span>
+    </span>
+    
+    
+    
+    <span class="fa-wrap">
+        <i class="fa fa-clock-o"></i>
+        <span class="date-meta">
+            2020/08/10</span>
+    </span>
+    
+    <span class="fa-wrap">
+        <i class="fa fa-eye"></i>
+        <span id="busuanzi_value_page_pv"></span>
+    </span>
+    
+    
+</div>
+        
+        
+    </div>
+    
+    <div class="post-body post-content">
+        <p><img src="http://image.nianlun.tech/2022/02/16/54d1e01e7fdce6b99fe5291f657fe29e.jpg" alt="pexels-this-is-zun-1194036"></p>
+<h3 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h3><p>ThreadLocal能够在单个线程中传递参数，使用可以用在系统参数的传递或者在链路跟踪中传递trace相关信息，需要说明的是单单使用ThreadLocal是不会出现ThreadLocal值线程共享的，但仅仅使用ThreadLocal还不够，如果代码中有使用异步，ThreadLocal就无能为力了，这时可以使用JDK自带的InheritableThreadLocal，这次ThreadLocal变量线程共享，就是因为使用了InheritableThreadLocal。</p>
+<p>我们的项目使用springboot构建，想使用ThreadLocal来完成透传系统参数，这样所有接口和方法都不要显式的传递次参数，刚刚说到ThreadLocal无法解决异步传递问题，InheritableThreadLocal也只能解决新建线程的情况，无法在线程池的场景中使用，具体原因下次分析，经过调研我们使用阿里开源的TransmittableThreadLocal </p>
+<h3 id="示例"><a href="#示例" class="headerlink" title="示例"></a>示例</h3><p>我们先来看这个例子：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">TransmittableThreadLocalUtil</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">static</span> Logger logger = LoggerFactory.getLogger(TransmittableThreadLocalUtil.class);</span><br><span class="line"></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> TransmittableThreadLocal&lt;Map&lt;String, Object&gt;&gt; threadLocal = <span class="keyword">new</span> TransmittableThreadLocal() &#123;</span><br><span class="line">        <span class="meta">@Override</span></span><br><span class="line">        <span class="function"><span class="keyword">protected</span> Object <span class="title">initialValue</span><span class="params">()</span> </span>&#123;</span><br><span class="line">            <span class="keyword">return</span> <span class="keyword">new</span> HashMap(<span class="number">4</span>);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;;</span><br><span class="line">    </span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> &lt;T&gt; <span class="function">T <span class="title">get</span><span class="params">(String key)</span> </span>&#123;</span><br><span class="line">        logger.info(<span class="string">"get &#123;&#125;"</span>,key);</span><br><span class="line">        Map map = (Map)threadLocal.get();</span><br><span class="line">        <span class="keyword">return</span> (T)map.get(key);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">set</span><span class="params">(String key, Object value)</span> </span>&#123;</span><br><span class="line">        Map map = (Map)threadLocal.get();</span><br><span class="line">        map.put(key, value);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> &lt;T&gt; <span class="function">T <span class="title">remove</span><span class="params">(String key)</span> </span>&#123;</span><br><span class="line">        Map map = (Map)threadLocal.get();</span><br><span class="line">        <span class="keyword">return</span> (T)map.remove(key);</span><br><span class="line">    &#125;</span><br></pre></td></tr></table></figure>
+<p>使用阿里的TransmittableThreadLocal封装了一个工具类，初始化一个map，有get、set、remove方法，其他方法省略。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@GetMapping</span>(<span class="string">"/testLocal2"</span>)</span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">test2</span><span class="params">()</span></span>&#123;</span><br><span class="line">    logger.info(<span class="string">"testLocal2 get "</span>+ TransmittableThreadLocalUtil.get(<span class="string">"test"</span>));</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="meta">@GetMapping</span>(<span class="string">"/testLocal3"</span>)</span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">test3</span><span class="params">()</span></span>&#123;</span><br><span class="line">    TransmittableThreadLocalUtil.set(<span class="string">"test"</span>,<span class="string">"200"</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>两个接口，一个设置test为200，另一个方法获取，springboot默认使用tomcat作为容器，我们知道tomcat在处理请求时使用了线程池，理论上2个接口的调用不会是同一个线程，我们看log输出可以确认：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="number">2020</span>-<span class="number">08</span>-<span class="number">09</span> <span class="number">22</span>:<span class="number">59</span>:<span class="number">36.765</span>  INFO <span class="number">86354</span> --- [nio-<span class="number">8080</span>-exec-<span class="number">1</span>] c.j.controller.ThreadLocalController     : testLocal3 test set <span class="number">200</span></span><br><span class="line"><span class="number">2020</span>-<span class="number">08</span>-<span class="number">09</span> <span class="number">22</span>:<span class="number">59</span>:<span class="number">37.755</span>  INFO <span class="number">86354</span> --- [nio-<span class="number">8080</span>-exec-<span class="number">2</span>] c.j.controller.ThreadLocalController     : testLocal2 get <span class="number">200</span></span><br></pre></td></tr></table></figure>
+<p>先调用了/testLocal3接口线程名称是nio-8080-exec-2，再调用了/testLocal2，线程名称是nio-8080-exec-1，是两个线程</p>
+<p>但是通过log可以看到第二个线程居然取到了第一个线程设置的ThreadLocal变量，这是怎么回事？ThreadLocal不是线程隔离的吗？</p>
+<p>上面只是用一个小例子帮助大家理解，实际中我们使用拦截器在方法调用前获取系统参数放入ThreadLocal中，在调用结束时清理ThreadLocal变量，但因为同样有上面例子中的问题，我们的一此请求没结束时可能ThreadLocal中的值就被别的线程清理的，导致业务异常。</p>
+<h3 id="原因"><a href="#原因" class="headerlink" title="原因"></a>原因</h3><p>这到底是什么原因导致的呢，在翻看了TransmittableThreadLocal的源码以及项目中的使用方式后找到了原因。</p>
+<p>TransmittableThreadLocal继承自jdk的<strong>InheritableThreadLocal</strong>，而<strong>InheritableThreadLocal</strong>的原理是父线程创建子线程时会将父线程的ThreadLocalMap复制到子线程中，这个复制是引用复制，也就是说子线程可以修改父线程ThreadLocal中的变量，但这也解释不了为什么ThreadLoal会线程共享，tomcat线程池中的线程都是子线程啊，那只可能是父线程出现了问题，再看一下项目代码，找到了原因。</p>
+<p>因为在service的静态变量中使用了TransmittableThreadLocalUtil的get方法初始化了那个map，而springboot在加载service时使用的是main主线程，是所有线程的父线程，导致所有的子线程通过TransmittableThreadLocal获取的Map是同一个引用，当然是线程共享了！</p>
+<p>例子中的service示例：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Service</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">TestService</span> </span>&#123;</span><br><span class="line">	<span class="comment">//静态变量的调用</span></span><br><span class="line">    <span class="keyword">private</span> String value = TransmittableThreadLocalUtil.get(<span class="string">"test"</span>);</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">testMethod</span><span class="params">()</span></span>&#123;</span><br><span class="line"></span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>get方法中有log，再看一眼启动log</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="number">2020</span>-<span class="number">08</span>-<span class="number">09</span> <span class="number">22</span>:<span class="number">59</span>:<span class="number">24.104</span>  INFO <span class="number">86354</span> --- [           main] o.s.web.context.ContextLoader            : Root WebApplicationContext: initialization completed in <span class="number">2164</span> ms</span><br><span class="line"><span class="number">2020</span>-<span class="number">08</span>-<span class="number">09</span> <span class="number">22</span>:<span class="number">59</span>:<span class="number">24.202</span>  INFO <span class="number">86354</span> --- [           main] c.j.util.TransmittableThreadLocalUtil    : get test</span><br><span class="line"><span class="number">2020</span>-<span class="number">08</span>-<span class="number">09</span> <span class="number">22</span>:<span class="number">59</span>:<span class="number">24.808</span>  INFO <span class="number">86354</span> --- [           main] o.s.s.concurrent.ThreadPoolTaskExecutor  : Initializing ExecutorService</span><br></pre></td></tr></table></figure>
+<p>日志第二行，main线程调用了TransmittableThreadLocalUtil，确定了推断。</p>
+<p>其中一种解决方式是在TransmittableThreadLocalUtil的初始化TransmittableThreadLocal对象时复写childValue方法</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> TransmittableThreadLocal&lt;Map&lt;String, Object&gt;&gt; threadLocal = <span class="keyword">new</span> TransmittableThreadLocal() &#123;</span><br><span class="line">        <span class="meta">@Override</span></span><br><span class="line">        <span class="function"><span class="keyword">protected</span> Object <span class="title">initialValue</span><span class="params">()</span> </span>&#123;</span><br><span class="line">            <span class="keyword">return</span> <span class="keyword">new</span> HashMap(<span class="number">4</span>);</span><br><span class="line">        &#125;</span><br><span class="line">  			<span class="meta">@Override</span></span><br><span class="line">        <span class="function"><span class="keyword">protected</span> Object <span class="title">childValue</span><span class="params">(Object parentValue)</span> </span>&#123;</span><br><span class="line">            <span class="keyword">if</span>(parentValue <span class="keyword">instanceof</span> Map)&#123;</span><br><span class="line">                <span class="keyword">return</span> <span class="keyword">new</span> HashMap&lt;&gt;((Map)parentValue);</span><br><span class="line">            &#125;</span><br><span class="line">            <span class="keyword">return</span> parentValue;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;;</span><br></pre></td></tr></table></figure>
+<h3 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h3><p>1、ThreadLocal不会出现线程间共享的情况。 </p>
+<p>2、InheritableThreadLocal的原理是新建子线程时将父线程ThreadLocal复制到子线程中，是引用复制，会导致父子线程都能操作那个引用。</p>
+<p>3、问题不是TransmittableThreadLocal引起的，是因为错误使用了InheritableThreadLocal，TransmittableThreadLocal只是继承自InheritableThreadLocal。</p>
+<p>为什么复写<code>childValue</code>方法就可以解决呢，ThreadLocal有没有别的坑，InheritableThreadLocal以及ThreadLocal中相关的源码是如何处理的呢，期待下一篇吧~</p>
+
+    </div>
+    
+    <div class="post-footer">
+        <div>
+            
+            转载声明：
+            商业转载请联系作者获得授权,非商业转载请注明出处 © <a href="http://blog.nianlun.tech/" target="_blank">年轮的自习室</a>
+            
+            
+        </div>
+        <div>
+            
+        </div>
+    </div>
+</article>
+<div class="article-nav prev-next-wrap clearfix">
+    
+    <a href="/2022/11/19/springboot获取不到客户端ip问题排查/" class="pre-post btn btn-default" title='springboot获取不到客户端ip问题排查'>
+        <i class="fa fa-angle-left fa-fw"></i><span class="hidden-lg">上一篇</span>
+        <span class="hidden-xs">
+            springboot获取不到客户端ip问题排查</span>
+    </a>
+    
+    
+    <a href="/2020/03/01/AQS原理解析（三、condition原理）/" class="next-post btn btn-default" title='AQS原理解析（三、condition原理）'>
+        <span class="hidden-lg">下一篇</span>
+        <span class="hidden-xs">
+            AQS原理解析（三、condition原理）</span><i class="fa fa-angle-right fa-fw"></i>
+    </a>
+    
+</div>
+
+<div id="comments">
+    
+<!--PC和WAP自适应版-->
+<div id="SOHUCS"></div>
+<script type="text/javascript">
+(function() {
+    var appid = 'cytUR27Rd';
+    var conf = 'prod_a94706eef67d4620edff3aa3c98e4bf5';
+    var width = window.innerWidth || document.documentElement.clientWidth;
+    if (width < 960) { window.document.write('<script id="changyan_mobile_js" charset="utf-8" type="text/javascript" src="https://changyan.sohu.com/upload/mobile/wap-js/changyan_mobile.js?client_id=' + appid + '&conf=' + conf + '"><\/script>'); } else {
+        var loadJs = function(d, a) {
+            var c = document.getElementsByTagName("head")[0] || document.head || document.documentElement;
+            var b = document.createElement("script");
+            b.setAttribute("type", "text/javascript");
+            b.setAttribute("charset", "UTF-8");
+            b.setAttribute("src", d);
+            if (typeof a === "function") { if (window.attachEvent) { b.onreadystatechange = function() { var e = b.readyState; if (e === "loaded" || e === "complete") { b.onreadystatechange = null;
+                            a() } } } else { b.onload = a } }
+            c.appendChild(b)
+        };
+        loadJs("https://changyan.sohu.com/upload/changyan.js", function() { window.changyan.api.config({ appid: appid, conf: conf }) });
+    }
+})();
+</script>
+
+</div>
+
+                </main>
+                
+                    <aside id="article-toc" role="navigation" class="col-md-4">
+    <div class="widget">
+        <h3 class="title">
+            文章目录
+        </h3>
+        
+        <ol class="toc"><li class="toc-item toc-level-3"><a class="toc-link" href="#前言"><span class="toc-text">前言</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#示例"><span class="toc-text">示例</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#原因"><span class="toc-text">原因</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#总结"><span class="toc-text">总结</span></a></li></ol>
+        
+    </div>
+</aside>
+                
+            </div>
+        </div>
+    </section>
+    <footer class="main-footer">
+    <div class="container">
+        <div class="row">
+        </div>
+    </div>
+</footer>
+<a id="back-to-top" class="icon-btn hide">
+    <i class="fa fa-chevron-up"></i>
+</a>
+    <div class="copyright">
+    <div class="container">
+        <div class="row">
+            <div class="col-sm-12">
+                <div class="busuanzi">
+    
+    访问量:
+    <strong id="busuanzi_value_site_pv">
+        <i class="fa fa-spinner fa-spin"></i>
+    </strong>
+    &nbsp; | &nbsp;
+    访客数:
+    <strong id="busuanzi_value_site_uv">
+        <i class="fa fa-spinner fa-spin"></i>
+    </strong>
+    
+</div>
+            </div>
+            <div class="col-sm-12">
+                <span>Copyright &copy;
+                    2017
+                    
+                </span> |
+                <span>
+                    Powered by <a href="//hexo.io" class="copyright-links" target="_blank" rel="nofollow">Hexo</a>
+                </span> |
+                <span>
+                    Theme by <a href="//github.com/shenliyang/hexo-theme-snippet.git" class="copyright-links" target="_blank" rel="nofollow">Snippet</a>
+                </span>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+<script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+<script src="/js/app.js?rev=@@hash"></script>
+</body>
+</html>

@@ -1,0 +1,341 @@
+<!DOCTYPE HTML>
+<html lang="zh-CN">
+
+<head>
+    <!--Setting-->
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge,chrome=1">
+    <meta http-equiv="Cache-Control" content="no-siteapp">
+    <meta http-equiv="Cache-Control" content="no-transform">
+    <meta name="renderer" content="webkit|ie-comp|ie-stand">
+    <meta name="apple-mobile-web-app-capable" content="年轮的自习室">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black">
+    <meta name="format-detection" content="telephone=no,email=no,adress=no">
+    <meta name="browsermode" content="application">
+    <meta name="screen-orientation" content="portrait">
+    <meta name="theme-version" content="1.2.3">
+    <meta name="root" content="/">
+    <link rel="dns-prefetch" href="http://qlql489.github.io">
+    <!--SEO-->
+
+<meta name="keywords" content="java,springboot,问题排查" />
+
+
+<meta name="description" content="一、现象springboot从2.0.2升级到 2.5.7后线上环境无法通过request.getHeader(“x-forwarded-for”)获取客户端ip地址，测试环境正常，开发环境也异..." />
+
+
+<meta name="robots" content="all" />
+<meta name="google" content="all" />
+<meta name="googlebot" content="all" />
+<meta name="verify" content="all" />
+    <!--Title-->
+
+<title>
+    
+    springboot获取不到客户端ip问题排查 |
+    
+    年轮的自习室
+</title>
+
+<link rel="alternate" href="/atom.xml" title="年轮的自习室" type="application/atom+xml">
+
+
+<link rel="icon" href="/favicon.ico">
+
+    
+
+<link rel="stylesheet" href="/css/bootstrap.min.css?rev=3.3.7">
+<link rel="stylesheet" href="/css/font-awesome.min.css?rev=4.7.0">
+<link rel="stylesheet" href="/css/style.css?rev=@@hash">
+    
+<div class="hide">
+    <script type="text/javascript">
+    var cnzz_protocol = (("https:" == document.location.protocol) ? " https://" : " http://");
+    document.write(unescape("%3Cspan class='cnzz_stat_icon_1263868967 hide' %3E%3Cscript%20src%3D%22https%3A%2F%2Fs95.cnzz.com%2Fz_stat.php%3Fweb_id%3D1272564536%22%3E%3C%2Fscript%3E%3C/span%3E%3Cscript src='" + cnzz_protocol + "s19.cnzz.com/z_stat.php%3Fid%3D1263868967%26show%3Dpic1' type='text/javascript'%3E%3C/script%3E"));
+    </script>
+</div>
+
+
+<script>
+var _hmt = _hmt || [];
+(function() {
+    var hm = document.createElement("script");
+    hm.src = "https://hm.baidu.com/hm.js?6ee9956165458a54c342f6448809323b";
+    var s = document.getElementsByTagName("script")[0];
+    s.parentNode.insertBefore(hm, s);
+})();
+</script>
+
+
+
+    
+
+</head>
+<!--[if lte IE 8]>
+<style>
+    html{ font-size: 1em }
+</style>
+<![endif]-->
+<!--[if lte IE 9]>
+<div style="ie">你使用的浏览器版本过低，为了你更好的阅读体验，请更新浏览器的版本或者使用其他现代浏览器，比如Chrome、Firefox、Safari等。</div>
+<![endif]-->
+<body>
+    <nav class="main-navigation">
+    <div class="container">
+        <div class="row">
+            <div class="col-sm-12">
+                <div class="navbar-header"><span class="nav-toggle-button collapsed" data-toggle="collapse" data-target="#main-menu" id="mnav">
+                    <span class="sr-only">Toggle navigation</span>
+                    <i class="fa fa-bars"></i>
+                    </span>
+                </div>
+                <div class="nav_header">
+                    <a>
+                        <img src="http://image.nianlun.tech/2020/11/10/cd425637b190f7f5fb2f52492669237a.png" alt="logo头像">
+                    </a>
+                    <div  class="nav_header_div">
+                        <span>年轮的自习室</span>
+                    </div>
+                </div>
+                <div class="collapse navbar-collapse" id="main-menu">
+                    <ul class="menu">
+                        
+                            <li role="presentation"><a href="/"><i class="fa fa-fw fa-home"></i>首页</a>
+                            </li>
+                        
+                            <li role="presentation"><a href="/categories/程序人生/"><i class="fa fa-fw fa-code"></i>程序人生</a>
+                            </li>
+                        
+                            <li role="presentation"><a href="/categories/成长/"><i class="fa fa-fw fa-plug"></i>成长</a>
+                            </li>
+                        
+                            <li role="presentation"><a href="/categories/读书/"><i class="fa fa-fw fa-book"></i>读书</a>
+                            </li>
+                        
+                            <li role="presentation"><a href="/categories/"><i class="fa fa-fw fa-bars"></i>分类</a>
+                            </li>
+                        
+                            <li role="presentation"><a href="/tags/"><i class="fa fa-fw fa-tags"></i>标签</a>
+                            </li>
+                        
+                            <li role="presentation"><a href="/archives/"><i class="fa fa-fw fa-archive"></i>归档</a>
+                            </li>
+                        
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</nav>
+    <section class="content-wrap">
+        <div class="container">
+            <div class="row">
+                <main class="col-md-8 main-content m-post">
+                    <p id="process"></p>
+<article class="post">
+    <div class="post-head">
+        <h1 id="springboot获取不到客户端ip问题排查">
+            
+            springboot获取不到客户端ip问题排查
+            
+        </h1>
+        <div class="post-meta">
+    
+    <span class="categories-meta fa-wrap">
+        <i class="fa fa-folder-open-o"></i>
+        <a class="category-link" href="/categories/程序人生/">程序人生</a>
+    </span>
+    
+    
+    <span class="fa-wrap">
+        <i class="fa fa-tags"></i>
+        <span class="tags-meta">
+            
+            <a class="tag-link" href="/tags/java/">java</a> <a class="tag-link" href="/tags/springboot/">springboot</a> <a class="tag-link" href="/tags/问题排查/">问题排查</a>
+            
+        </span>
+    </span>
+    
+    
+    
+    <span class="fa-wrap">
+        <i class="fa fa-clock-o"></i>
+        <span class="date-meta">
+            2022/11/19</span>
+    </span>
+    
+    <span class="fa-wrap">
+        <i class="fa fa-eye"></i>
+        <span id="busuanzi_value_page_pv"></span>
+    </span>
+    
+    
+</div>
+        
+        
+    </div>
+    
+    <div class="post-body post-content">
+        <h3 id="一、现象"><a href="#一、现象" class="headerlink" title="一、现象"></a>一、现象</h3><p>springboot从2.0.2升级到 2.5.7后线上环境无法通过request.getHeader(“x-forwarded-for”)获取客户端ip地址，测试环境正常，开发环境也异常</p>
+<h3 id="二、结论"><a href="#二、结论" class="headerlink" title="二、结论"></a>二、结论</h3><p>springboot 2.5.7版本中CloudPlatform多了Kubernetes platform的类型识别，如果使用的是内嵌的tomcat，在k8s环境中会自动添加了tomcat的RemoteIpValve，线上环境的httpHeader(x-forwarded-for)只有一个，没有代理ip信息，按RemoteIpValve的逻辑，x-forwarded-for头信息会被删除。</p>
+<h3 id="三、排查流程"><a href="#三、排查流程" class="headerlink" title="三、排查流程"></a>三、排查流程</h3><h4 id="1、抓包看请求与现象"><a href="#1、抓包看请求与现象" class="headerlink" title="1、抓包看请求与现象"></a>1、抓包看请求与现象</h4><p>dev环境抓包</p>
+<p><img src="http://image.nianlun.tech/2022/11/19/a30167670facd04fb59cd2cc434e458b.png" alt="image-20221119153546617"></p>
+<p>可以看到抓包中有x-forwarded-for，但是一个内网ip</p>
+<h4 id="2、本地调试"><a href="#2、本地调试" class="headerlink" title="2、本地调试"></a>2、本地调试</h4><p>使用develop分支本地模拟dev环境请求，debug发现可以获取到ip地址</p>
+<h4 id="3、搜索springboot丢失x-forwarded-for的原因"><a href="#3、搜索springboot丢失x-forwarded-for的原因" class="headerlink" title="3、搜索springboot丢失x-forwarded-for的原因"></a>3、搜索springboot丢失x-forwarded-for的原因</h4><p>搜索到文章<a href="https://loveyu.org/5951.html" target="_blank" rel="noopener">https://loveyu.org/5951.html</a></p>
+<p>看到了删除header的调用 <strong>removeHeader</strong>方法，但没有写是哪个类，搜索代码发现是内嵌tomcat的RemoteIpValve类中调用，大致看了下逻辑其中有删除header x-forwarded-for的代码，但打断点debug发现不会走到RemoteIpValve中</p>
+<h4 id="4、查看RemoteIpValve的执行逻辑"><a href="#4、查看RemoteIpValve的执行逻辑" class="headerlink" title="4、查看RemoteIpValve的执行逻辑"></a>4、查看RemoteIpValve的执行逻辑</h4><p>查看上面文章提到的配置：server.forward-headers-strategy</p>
+<p>通过搜索发现，是在spring的配置类org.springframework.boot.autoconfigure.web.ServerProperties中</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">/**</span><br><span class="line"> * Strategy for handling X-Forwarded-* headers.</span><br><span class="line"> */</span><br><span class="line">private ForwardHeadersStrategy forwardHeadersStrategy;</span><br></pre></td></tr></table></figure>
+<p>get方法会在TomcatWebServerFactoryCustomizer类的getOrDeduceUseForwardHeaders方法中调用</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br></pre></td><td class="code"><pre><span class="line">private void customizeRemoteIpValve(ConfigurableTomcatWebServerFactory factory) &#123;</span><br><span class="line">   Remoteip remoteIpProperties = this.serverProperties.getTomcat().getRemoteip();</span><br><span class="line">   String protocolHeader = remoteIpProperties.getProtocolHeader();</span><br><span class="line">   String remoteIpHeader = remoteIpProperties.getRemoteIpHeader();</span><br><span class="line">   // For back compatibility the valve is also enabled if protocol-header is set</span><br><span class="line">   if (StringUtils.hasText(protocolHeader) || StringUtils.hasText(remoteIpHeader)</span><br><span class="line">         || getOrDeduceUseForwardHeaders()) &#123;</span><br><span class="line">      RemoteIpValve valve = new RemoteIpValve();</span><br><span class="line">      valve.setProtocolHeader(StringUtils.hasLength(protocolHeader) ? protocolHeader : &quot;X-Forwarded-Proto&quot;);</span><br><span class="line">      if (StringUtils.hasLength(remoteIpHeader)) &#123;</span><br><span class="line">         valve.setRemoteIpHeader(remoteIpHeader);</span><br><span class="line">      &#125;</span><br><span class="line">      // The internal proxies default to a list of &quot;safe&quot; internal IP addresses</span><br><span class="line">      valve.setInternalProxies(remoteIpProperties.getInternalProxies());</span><br><span class="line">      try &#123;</span><br><span class="line">         valve.setHostHeader(remoteIpProperties.getHostHeader());</span><br><span class="line">      &#125;</span><br><span class="line">      catch (NoSuchMethodError ex) &#123;</span><br><span class="line">         // Avoid failure with war deployments to Tomcat 8.5 before 8.5.44 and</span><br><span class="line">         // Tomcat 9 before 9.0.23</span><br><span class="line">      &#125;</span><br><span class="line">      valve.setPortHeader(remoteIpProperties.getPortHeader());</span><br><span class="line">      valve.setProtocolHeaderHttpsValue(remoteIpProperties.getProtocolHeaderHttpsValue());</span><br><span class="line">      // ... so it&apos;s safe to add this valve by default.</span><br><span class="line">      factory.addEngineValves(valve);</span><br><span class="line">   &#125;</span><br><span class="line">&#125;</span><br><span class="line"> </span><br><span class="line">private boolean getOrDeduceUseForwardHeaders() &#123;</span><br><span class="line">   if (this.serverProperties.getForwardHeadersStrategy() == null) &#123;</span><br><span class="line">      CloudPlatform platform = CloudPlatform.getActive(this.environment);</span><br><span class="line">      return platform != null &amp;&amp; platform.isUsingForwardHeaders();</span><br><span class="line">   &#125;</span><br><span class="line">   return this.serverProperties.getForwardHeadersStrategy().equals(ServerProperties.ForwardHeadersStrategy.NATIVE);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>getOrDeduceUseForwardHeaders方法逻辑</p>
+<p>1、如果没有配置forwardHeadersStrategy则判断目前的环境</p>
+<p>org.springframework.boot.cloud.CloudPlatform#getActive</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">public static CloudPlatform getActive(Environment environment) &#123;</span><br><span class="line">   if (environment != null) &#123;</span><br><span class="line">      for (CloudPlatform cloudPlatform : values()) &#123;</span><br><span class="line">         if (cloudPlatform.isActive(environment)) &#123;</span><br><span class="line">            return cloudPlatform;</span><br><span class="line">         &#125;</span><br><span class="line">      &#125;</span><br><span class="line">   &#125;</span><br><span class="line">   return null;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>CloudPlatform枚举类中可以看到比之前的springboot版本多了KUBERNETES的枚举，也就是在k8s环境CloudPlatform.getActive(this.environment)返回的不为空，isUsingForwardHeaders返回也为true</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">public boolean isUsingForwardHeaders() &#123;</span><br><span class="line">   return true;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>2、如果配置了则判断是否为NATIVE</p>
+<p>新版本通过k8s环境判断getOrDeduceUseForwardHeaders方法返回true</p>
+<p>getOrDeduceUseForwardHeaders返回为true，在customizeRemoteIpValve方法中就会添加RemoteIpValve</p>
+<h4 id="5、为什么测试环境没事，dev和线上都有问题"><a href="#5、为什么测试环境没事，dev和线上都有问题" class="headerlink" title="5、为什么测试环境没事，dev和线上都有问题"></a>5、为什么测试环境没事，dev和线上都有问题</h4><p>通过arthus查看dev和测试环境的调用栈，发现调用栈不同</p>
+<p>dev调用栈</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br></pre></td><td class="code"><pre><span class="line">`---ts=2022-11-14 20:45:50;thread_name=http-nio-8080-exec-1;id=5b;is_daemon=true;priority=5;TCCL=org.springframework.boot.loader.LaunchedURLClassLoader@3d24753a</span><br><span class="line">    `---[1.786075ms] org.apache.catalina.valves.RemoteIpValve:invoke()</span><br><span class="line">        +---[0.54% 0.009643ms ] org.apache.catalina.connector.Request:getRemoteAddr() #613</span><br><span class="line">        +---[0.17% 0.002994ms ] org.apache.catalina.connector.Request:getRemoteHost() #614</span><br><span class="line">        +---[0.19% 0.003369ms ] org.apache.catalina.connector.Request:getScheme() #615</span><br><span class="line">        +---[0.15% 0.002714ms ] org.apache.catalina.connector.Request:isSecure() #616</span><br><span class="line">        +---[0.17% 0.003068ms ] org.apache.catalina.connector.Request:getServerName() #617</span><br><span class="line">        +---[0.15% 0.002709ms ] org.apache.catalina.valves.RemoteIpValve:isChangeLocalName() #618</span><br><span class="line">        +---[0.16% 0.002895ms ] org.apache.catalina.connector.Request:getServerPort() #619</span><br><span class="line">        +---[0.22% 0.003994ms ] org.apache.catalina.connector.Request:getLocalPort() #620</span><br><span class="line">        +---[0.18% 0.00325ms ] org.apache.catalina.connector.Request:getHeader() #621</span><br><span class="line">        +---[0.16% 0.002793ms ] org.apache.catalina.connector.Request:getHeader() #622</span><br><span class="line">        +---[0.21% 0.00372ms ] org.apache.catalina.connector.Request:getHeaders() #632</span><br><span class="line">        +---[0.18% 0.003182ms ] org.apache.catalina.valves.RemoteIpValve:commaDelimitedListToStringArray() #640</span><br><span class="line">        +---[0.14% 0.002488ms ] org.apache.catalina.connector.Request:getHeader() #700</span><br><span class="line">        +---[0.13% 0.002356ms ] org.apache.catalina.connector.Request:getHeader() #716</span><br><span class="line">        +---[0.28% 0.004932ms ] org.apache.catalina.connector.Request:setAttribute() #736</span><br><span class="line">        +---[0.14% 0.002555ms ] org.apache.juli.logging.Log:isDebugEnabled() #738</span><br><span class="line">        +---[0.10% 0.001796ms ] org.apache.catalina.connector.Request:getRemoteAddr() #756</span><br><span class="line">        +---[0.15% 0.002711ms ] org.apache.catalina.connector.Request:setAttribute() #755</span><br><span class="line">        +---[0.13% 0.002321ms ] org.apache.catalina.connector.Request:getRemoteAddr() #758</span><br><span class="line">        +---[0.12% 0.002186ms ] org.apache.catalina.connector.Request:setAttribute() #757</span><br><span class="line">        +---[0.11% 0.001972ms ] org.apache.catalina.connector.Request:getRemoteHost() #760</span><br><span class="line">        +---[0.12% 0.002058ms ] org.apache.catalina.connector.Request:setAttribute() #759</span><br><span class="line">        +---[0.19% 0.003334ms ] org.apache.catalina.connector.Request:getProtocol() #762</span><br><span class="line">        +---[0.12% 0.00218ms ] org.apache.catalina.connector.Request:setAttribute() #761</span><br><span class="line">        +---[0.12% 0.002192ms ] org.apache.catalina.connector.Request:getServerName() #764</span><br><span class="line">        +---[0.12% 0.00212ms ] org.apache.catalina.connector.Request:setAttribute() #763</span><br><span class="line">        +---[0.11% 0.002021ms ] org.apache.catalina.connector.Request:getServerPort() #766</span><br><span class="line">        +---[0.14% 0.002423ms ] org.apache.catalina.connector.Request:setAttribute() #765</span><br><span class="line">        +---[0.39% 0.007047ms ] org.apache.catalina.valves.RemoteIpValve:getNext() #769</span><br><span class="line">        +---[79.19% 1.414379ms ] org.apache.catalina.Valve:invoke() #769</span><br><span class="line">        +---[0.23% 0.00409ms ] org.apache.catalina.connector.Request:setRemoteAddr() #771</span><br><span class="line">        +---[0.16% 0.002866ms ] org.apache.catalina.connector.Request:setRemoteHost() #772</span><br><span class="line">        +---[0.15% 0.002725ms ] org.apache.catalina.connector.Request:setSecure() #773</span><br><span class="line">        +---[0.20% 0.00363ms ] org.apache.catalina.connector.Request:getCoyoteRequest() #774</span><br><span class="line">        +---[0.19% 0.003448ms ] org.apache.coyote.Request:scheme() #774</span><br><span class="line">        +---[0.14% 0.002545ms ] org.apache.tomcat.util.buf.MessageBytes:setString() #774</span><br><span class="line">        +---[0.16% 0.002889ms ] org.apache.catalina.connector.Request:getCoyoteRequest() #775</span><br><span class="line">        +---[0.19% 0.00342ms ] org.apache.coyote.Request:serverName() #775</span><br><span class="line">        +---[0.17% 0.00297ms ] org.apache.tomcat.util.buf.MessageBytes:setString() #775</span><br><span class="line">        +---[0.22% 0.003904ms ] org.apache.catalina.valves.RemoteIpValve:isChangeLocalName() #776</span><br><span class="line">        +---[0.20% 0.00363ms ] org.apache.catalina.connector.Request:setServerPort() #779</span><br><span class="line">        +---[0.17% 0.003065ms ] org.apache.catalina.connector.Request:setLocalPort() #780</span><br><span class="line">        +---[0.16% 0.002877ms ] org.apache.catalina.connector.Request:getCoyoteRequest() #782</span><br><span class="line">        +---[0.18% 0.003204ms ] org.apache.coyote.Request:getMimeHeaders() #782</span><br><span class="line">        +---[0.22% 0.003937ms ] org.apache.tomcat.util.http.MimeHeaders:removeHeader() #784</span><br><span class="line">        `---[0.17% 0.003077ms ] org.apache.tomcat.util.http.MimeHeaders:removeHeader() #790</span><br></pre></td></tr></table></figure>
+<p>测试环境调用栈</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br></pre></td><td class="code"><pre><span class="line">`---ts=2022-11-14 21:02:40;thread_name=http-nio-8080-exec-5;id=aa;is_daemon=true;priority=5;TCCL=org.springframework.boot.loader.LaunchedURLClassLoader@42f85fa4</span><br><span class="line">    `---[100.85578ms] org.apache.catalina.valves.RemoteIpValve:invoke()</span><br><span class="line">        +---[0.02% 0.016252ms ] org.apache.catalina.connector.Request:getRemoteAddr() #613</span><br><span class="line">        +---[0.00% 0.002572ms ] org.apache.catalina.connector.Request:getRemoteHost() #614</span><br><span class="line">        +---[0.00% 0.001721ms ] org.apache.catalina.connector.Request:getScheme() #615</span><br><span class="line">        +---[0.00% 0.001826ms ] org.apache.catalina.connector.Request:isSecure() #616</span><br><span class="line">        +---[0.00% 0.001719ms ] org.apache.catalina.connector.Request:getServerName() #617</span><br><span class="line">        +---[0.00% 0.002139ms ] org.apache.catalina.valves.RemoteIpValve:isChangeLocalName() #618</span><br><span class="line">        +---[0.00% 0.004452ms ] org.apache.catalina.connector.Request:getServerPort() #619</span><br><span class="line">        +---[0.00% 0.002919ms ] org.apache.catalina.connector.Request:getLocalPort() #620</span><br><span class="line">        +---[0.00% 0.001888ms ] org.apache.catalina.connector.Request:getHeader() #621</span><br><span class="line">        +---[0.00% 0.003649ms ] org.apache.catalina.connector.Request:getHeader() #622</span><br><span class="line">        +---[0.00% 0.0024ms ] org.apache.catalina.connector.Request:getHeaders() #632</span><br><span class="line">        +---[0.01% 0.011289ms ] org.apache.catalina.valves.RemoteIpValve:commaDelimitedListToStringArray() #640</span><br><span class="line">        +---[0.00% 0.001824ms ] org.apache.catalina.connector.Request:setRemoteAddr() #667</span><br><span class="line">        +---[0.00% 0.001824ms ] org.apache.catalina.connector.Request:getConnector() #668</span><br><span class="line">        +---[0.00% 0.002051ms ] org.apache.catalina.connector.Connector:getEnableLookups() #668</span><br><span class="line">        +---[0.00% 0.001576ms ] org.apache.catalina.connector.Request:setRemoteHost() #682</span><br><span class="line">        +---[0.00% 0.001515ms ] org.apache.catalina.connector.Request:getCoyoteRequest() #686</span><br><span class="line">        +---[0.00% 0.00188ms ] org.apache.coyote.Request:getMimeHeaders() #686</span><br><span class="line">        +---[0.00% 0.001862ms ] org.apache.tomcat.util.http.MimeHeaders:removeHeader() #686</span><br><span class="line">        +---[0.00% 0.004026ms ] org.apache.tomcat.util.buf.StringUtils:join() #694</span><br><span class="line">        +---[0.00% 0.001333ms ] org.apache.catalina.connector.Request:getCoyoteRequest() #695</span><br><span class="line">        +---[0.00% 0.001517ms ] org.apache.coyote.Request:getMimeHeaders() #695</span><br><span class="line">        +---[0.00% 0.001971ms ] org.apache.tomcat.util.http.MimeHeaders:setValue() #695</span><br><span class="line">        +---[0.00% 0.001817ms ] org.apache.tomcat.util.buf.MessageBytes:setString() #695</span><br><span class="line">        +---[0.00% 0.00168ms ] org.apache.catalina.connector.Request:getHeader() #700</span><br><span class="line">        +---[0.00% 0.003129ms ] org.apache.catalina.valves.RemoteIpValve:isForwardedProtoHeaderValueSecure() #704</span><br><span class="line">        +---[0.00% 0.001654ms ] org.apache.catalina.connector.Request:setSecure() #709</span><br><span class="line">        +---[0.00% 0.001344ms ] org.apache.catalina.connector.Request:getCoyoteRequest() #710</span><br><span class="line">        +---[0.00% 0.002058ms ] org.apache.coyote.Request:scheme() #710</span><br><span class="line">        +---[0.00% 0.001186ms ] org.apache.tomcat.util.buf.MessageBytes:setString() #710</span><br><span class="line">        +---[0.00% 0.002904ms ] org.apache.catalina.valves.RemoteIpValve:setPorts() #711</span><br><span class="line">        +---[0.00% 0.001491ms ] org.apache.catalina.connector.Request:getHeader() #716</span><br><span class="line">        +---[0.00% 0.003306ms ] org.apache.tomcat.util.http.parser.Host:parse() #719</span><br><span class="line">        +---[0.00% 0.001296ms ] org.apache.catalina.connector.Request:getCoyoteRequest() #725</span><br><span class="line">        +---[0.00% 0.001337ms ] org.apache.coyote.Request:serverName() #725</span><br><span class="line">        +---[0.00% 0.001271ms ] org.apache.tomcat.util.buf.MessageBytes:setString() #725</span><br><span class="line">        +---[0.00% 0.001253ms ] org.apache.catalina.valves.RemoteIpValve:isChangeLocalName() #726</span><br><span class="line">        +---[0.00% 0.003314ms ] org.apache.catalina.connector.Request:setAttribute() #736</span><br><span class="line">        +---[0.02% 0.015683ms ] org.apache.juli.logging.Log:isDebugEnabled() #738</span><br><span class="line">        +---[0.00% 0.00135ms ] org.apache.catalina.connector.Request:getRemoteAddr() #756</span><br><span class="line">        +---[0.00% 0.001719ms ] org.apache.catalina.connector.Request:setAttribute() #755</span><br><span class="line">        +---[0.00% 0.001249ms ] org.apache.catalina.connector.Request:getRemoteAddr() #758</span><br><span class="line">        +---[0.00% 0.001294ms ] org.apache.catalina.connector.Request:setAttribute() #757</span><br><span class="line">        +---[0.00% 0.00128ms ] org.apache.catalina.connector.Request:getRemoteHost() #760</span><br><span class="line">        +---[0.00% 0.001485ms ] org.apache.catalina.connector.Request:setAttribute() #759</span><br><span class="line">        +---[0.00% 0.002571ms ] org.apache.catalina.connector.Request:getProtocol() #762</span><br><span class="line">        +---[0.00% 0.001857ms ] org.apache.catalina.connector.Request:setAttribute() #761</span><br><span class="line">        +---[0.01% 0.008126ms ] org.apache.catalina.connector.Request:getServerName() #764</span><br><span class="line">        +---[0.00% 0.001972ms ] org.apache.catalina.connector.Request:setAttribute() #763</span><br><span class="line">        +---[0.00% 0.001452ms ] org.apache.catalina.connector.Request:getServerPort() #766</span><br><span class="line">        +---[0.00% 0.001782ms ] org.apache.catalina.connector.Request:setAttribute() #765</span><br><span class="line">        +---[0.00% 0.001442ms ] org.apache.catalina.valves.RemoteIpValve:getNext() #769</span><br><span class="line">        +---[99.65% 100.500217ms ] org.apache.catalina.Valve:invoke() #769</span><br><span class="line">        +---[0.00% 0.002653ms ] org.apache.catalina.connector.Request:setRemoteAddr() #771</span><br><span class="line">        +---[0.00% 0.001491ms ] org.apache.catalina.connector.Request:setRemoteHost() #772</span><br><span class="line">        +---[0.00% 0.00171ms ] org.apache.catalina.connector.Request:setSecure() #773</span><br><span class="line">        +---[0.00% 0.001662ms ] org.apache.catalina.connector.Request:getCoyoteRequest() #774</span><br><span class="line">        +---[0.00% 0.00229ms ] org.apache.coyote.Request:scheme() #774</span><br><span class="line">        +---[0.00% 0.001822ms ] org.apache.tomcat.util.buf.MessageBytes:setString() #774</span><br><span class="line">        +---[0.00% 0.00142ms ] org.apache.catalina.connector.Request:getCoyoteRequest() #775</span><br><span class="line">        +---[0.00% 0.002272ms ] org.apache.coyote.Request:serverName() #775</span><br><span class="line">        +---[0.00% 0.001255ms ] org.apache.tomcat.util.buf.MessageBytes:setString() #775</span><br><span class="line">        +---[0.00% 0.002824ms ] org.apache.catalina.valves.RemoteIpValve:isChangeLocalName() #776</span><br><span class="line">        +---[0.00% 0.001433ms ] org.apache.catalina.connector.Request:setServerPort() #779</span><br><span class="line">        +---[0.00% 0.001558ms ] org.apache.catalina.connector.Request:setLocalPort() #780</span><br><span class="line">        +---[0.00% 0.001666ms ] org.apache.catalina.connector.Request:getCoyoteRequest() #782</span><br><span class="line">        +---[0.00% 0.001526ms ] org.apache.coyote.Request:getMimeHeaders() #782</span><br><span class="line">        +---[0.00% 0.002167ms ] org.apache.tomcat.util.http.MimeHeaders:removeHeader() #784</span><br><span class="line">        +---[0.00% 0.002147ms ] org.apache.tomcat.util.http.MimeHeaders:setValue() #792</span><br><span class="line">        `---[0.00% 0.001765ms ] org.apache.tomcat.util.buf.MessageBytes:setString() #792</span><br></pre></td></tr></table></figure>
+<p>对比代码发现dev环境的确执行了删除header的操作</p>
+<p>仔细探究RemoteIpValve代码逻辑</p>
+<p>和目前问题相关的大致功能为：解析X-Forwarded-for请求头，将其中的远端地址设置到RemoteAddr中</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">简单解释X-Forwarded-For的作用</span><br><span class="line"></span><br><span class="line">例如真正的用户客户端是Client1，通过代理服务器proxy1，proxy2，到达服务器，在Tomcat中执行获取客户端地址的方法：request.getRemoteAddr，获得的IP地址是proxy2的，也就是负载均衡的地址；</span><br><span class="line"></span><br><span class="line">而如果你想要获取Client1的地址，也是可以获取到的，就是通过X-Forwarded-For字段；</span><br><span class="line">X-Forwarded-For:简称XFF头，它代表客户端，只有在通过了HTTP 代理或者负载均衡服务器时才会添加该项。</span><br><span class="line">X-Forwarded-For内置在Http协议头中，刚刚的场景X-Forwarded-For取值为：client1, proxy1, proxy2</span><br></pre></td></tr></table></figure>
+<p>具体逻辑为：</p>
+<p>对于列表中的每个ip，如果属于内网地址则跳过，否则将此ip设置为远程ip，停止循环</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//最近一跳代理地址</span></span><br><span class="line"><span class="keyword">final</span> String originalRemoteAddr = request.getRemoteAddr();</span><br><span class="line">...</span><br><span class="line"><span class="comment">//X-Forwarded-For头信息</span></span><br><span class="line"><span class="keyword">final</span> String originalRemoteIpHeader = request.getHeader(remoteIpHeader);</span><br><span class="line"><span class="comment">//最近一跳代理地址是否为内网</span></span><br><span class="line"><span class="comment">// 内网正则判断为 Pattern internalProxies = Pattern.compile(</span></span><br><span class="line">        <span class="string">"10\\.\\d&#123;1,3&#125;\\.\\d&#123;1,3&#125;\\.\\d&#123;1,3&#125;|"</span> +</span><br><span class="line">        <span class="string">"192\\.168\\.\\d&#123;1,3&#125;\\.\\d&#123;1,3&#125;|"</span> +</span><br><span class="line">        <span class="string">"169\\.254\\.\\d&#123;1,3&#125;\\.\\d&#123;1,3&#125;|"</span> +</span><br><span class="line">        <span class="string">"127\\.\\d&#123;1,3&#125;\\.\\d&#123;1,3&#125;\\.\\d&#123;1,3&#125;|"</span> +</span><br><span class="line">        <span class="string">"172\\.1[6-9]&#123;1&#125;\\.\\d&#123;1,3&#125;\\.\\d&#123;1,3&#125;|"</span> +</span><br><span class="line">        <span class="string">"172\\.2[0-9]&#123;1&#125;\\.\\d&#123;1,3&#125;\\.\\d&#123;1,3&#125;|"</span> +</span><br><span class="line">        <span class="string">"172\\.3[0-1]&#123;1&#125;\\.\\d&#123;1,3&#125;\\.\\d&#123;1,3&#125;|"</span> +</span><br><span class="line">        <span class="string">"0:0:0:0:0:0:0:1|::1"</span>);</span><br><span class="line"><span class="comment">//originalRemoteAddr 所有环境都为内网地址，返回true</span></span><br><span class="line"><span class="keyword">boolean</span> isInternal = internalProxies != <span class="keyword">null</span> &amp;&amp;</span><br><span class="line">        internalProxies.matcher(originalRemoteAddr).matches();</span><br><span class="line"><span class="comment">//trustedProxies为空</span></span><br><span class="line"><span class="keyword">if</span> (isInternal || (trustedProxies != <span class="keyword">null</span> &amp;&amp;</span><br><span class="line">        trustedProxies.matcher(originalRemoteAddr).matches())) &#123;</span><br><span class="line">    String remoteIp = <span class="keyword">null</span>;</span><br><span class="line">    Deque&lt;String&gt; proxiesHeaderValue = <span class="keyword">new</span> LinkedList&lt;&gt;();</span><br><span class="line">    StringBuilder concatRemoteIpHeaderValue = <span class="keyword">new</span> StringBuilder();</span><br><span class="line"> </span><br><span class="line">    <span class="keyword">for</span> (Enumeration&lt;String&gt; e = request.getHeaders(remoteIpHeader); e.hasMoreElements();) &#123;</span><br><span class="line">        <span class="keyword">if</span> (concatRemoteIpHeaderValue.length() &gt; <span class="number">0</span>) &#123;</span><br><span class="line">            concatRemoteIpHeaderValue.append(<span class="string">", "</span>);</span><br><span class="line">        &#125;</span><br><span class="line"> </span><br><span class="line">        concatRemoteIpHeaderValue.append(e.nextElement());</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="comment">//X-Forwarded-For内的地址转换为数组</span></span><br><span class="line">    String[] remoteIpHeaderValue = commaDelimitedListToStringArray(concatRemoteIpHeaderValue.toString());</span><br><span class="line">    <span class="keyword">int</span> idx;</span><br><span class="line">    <span class="keyword">if</span> (!isInternal) &#123;</span><br><span class="line">        proxiesHeaderValue.addFirst(originalRemoteAddr);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="comment">//从最后的地址循环</span></span><br><span class="line">    <span class="keyword">for</span> (idx = remoteIpHeaderValue.length - <span class="number">1</span>; idx &gt;= <span class="number">0</span>; idx--) &#123;</span><br><span class="line">        String currentRemoteIp = remoteIpHeaderValue[idx];</span><br><span class="line">        remoteIp = currentRemoteIp;</span><br><span class="line">        <span class="comment">//如果是内网地址则跳过</span></span><br><span class="line">        <span class="keyword">if</span> (internalProxies !=<span class="keyword">null</span> &amp;&amp; internalProxies.matcher(currentRemoteIp).matches()) &#123;</span><br><span class="line">            </span><br><span class="line">        <span class="comment">//trustedProxies目前配置为空</span></span><br><span class="line">        &#125; <span class="keyword">else</span> <span class="keyword">if</span> (trustedProxies != <span class="keyword">null</span> &amp;&amp;</span><br><span class="line">                trustedProxies.matcher(currentRemoteIp).matches()) &#123;</span><br><span class="line">            proxiesHeaderValue.addFirst(currentRemoteIp);</span><br><span class="line">        &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">        <span class="comment">//找到第一个不是内网地址的idx，但如果只有一个地址，则idx会变成负数</span></span><br><span class="line">            idx--;</span><br><span class="line">            <span class="keyword">break</span>;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="comment">//重新构建客户端地址的list，但idx必须不小于0</span></span><br><span class="line">    LinkedList&lt;String&gt; newRemoteIpHeaderValue = <span class="keyword">new</span> LinkedList&lt;&gt;();</span><br><span class="line">    <span class="keyword">for</span> (; idx &gt;= <span class="number">0</span>; idx--) &#123;</span><br><span class="line">        String currentRemoteIp = remoteIpHeaderValue[idx];</span><br><span class="line">        newRemoteIpHeaderValue.addFirst(currentRemoteIp);</span><br><span class="line">    &#125;</span><br><span class="line">     </span><br><span class="line">...</span><br><span class="line">    <span class="comment">//如果newRemoteIpHeaderValue为空则删除X-Forwarded-For</span></span><br><span class="line">    <span class="keyword">if</span> (newRemoteIpHeaderValue.size() == <span class="number">0</span>) &#123;</span><br><span class="line">         request.getCoyoteRequest().getMimeHeaders().removeHeader(remoteIpHeader);</span><br><span class="line">    &#125;</span><br></pre></td></tr></table></figure>
+<p>总结一下逻辑</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">X-Forwarded-For中的地址集合从后往前取，在至少有两个地址并且，最后的地址是内网地址的情况下不会删除X-Forwarded-For请求头</span><br></pre></td></tr></table></figure>
+<p>看一下dev、test、线上的数据</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">//test环境 172.31.0.203为内网地址</span><br><span class="line">X-Forwarded-For: 203.187.160.86, 100.117.125.137, 172.31.0.203</span><br><span class="line">//dev环境172.30.1.118为内网地址</span><br><span class="line">X-Forwarded-For: 172.30.1.118</span><br><span class="line">//线上环境 117.136.68.19为外网地址，但只有一个ip，没有代理的地址</span><br><span class="line">X-Forwarded-For: 117.136.68.19</span><br></pre></td></tr></table></figure>
+<p>所以dev和线上会被删去请求头</p>
+<h3 id="处理"><a href="#处理" class="headerlink" title="处理"></a>处理</h3><p>在wb-base-component-starter中添加公共配置</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">server:</span><br><span class="line">    forward-headers-strategy: none</span><br></pre></td></tr></table></figure>
+<p>不加载tomcat的RemoteIpValve</p>
+
+    </div>
+    
+    <div class="post-footer">
+        <div>
+            
+            转载声明：
+            商业转载请联系作者获得授权,非商业转载请注明出处 © <a href="http://blog.nianlun.tech/" target="_blank">年轮的自习室</a>
+            
+            
+        </div>
+        <div>
+            
+        </div>
+    </div>
+</article>
+<div class="article-nav prev-next-wrap clearfix">
+    
+    
+    <a href="/2020/08/10/TransmittableThreadLocal的错误用法/" class="next-post btn btn-default" title='TransmittableThreadLocal的错误用法'>
+        <span class="hidden-lg">下一篇</span>
+        <span class="hidden-xs">
+            TransmittableThreadLocal的错误用法</span><i class="fa fa-angle-right fa-fw"></i>
+    </a>
+    
+</div>
+
+<div id="comments">
+    
+<!--PC和WAP自适应版-->
+<div id="SOHUCS"></div>
+<script type="text/javascript">
+(function() {
+    var appid = 'cytUR27Rd';
+    var conf = 'prod_a94706eef67d4620edff3aa3c98e4bf5';
+    var width = window.innerWidth || document.documentElement.clientWidth;
+    if (width < 960) { window.document.write('<script id="changyan_mobile_js" charset="utf-8" type="text/javascript" src="https://changyan.sohu.com/upload/mobile/wap-js/changyan_mobile.js?client_id=' + appid + '&conf=' + conf + '"><\/script>'); } else {
+        var loadJs = function(d, a) {
+            var c = document.getElementsByTagName("head")[0] || document.head || document.documentElement;
+            var b = document.createElement("script");
+            b.setAttribute("type", "text/javascript");
+            b.setAttribute("charset", "UTF-8");
+            b.setAttribute("src", d);
+            if (typeof a === "function") { if (window.attachEvent) { b.onreadystatechange = function() { var e = b.readyState; if (e === "loaded" || e === "complete") { b.onreadystatechange = null;
+                            a() } } } else { b.onload = a } }
+            c.appendChild(b)
+        };
+        loadJs("https://changyan.sohu.com/upload/changyan.js", function() { window.changyan.api.config({ appid: appid, conf: conf }) });
+    }
+})();
+</script>
+
+</div>
+
+                </main>
+                
+                    <aside id="article-toc" role="navigation" class="col-md-4">
+    <div class="widget">
+        <h3 class="title">
+            文章目录
+        </h3>
+        
+        <ol class="toc"><li class="toc-item toc-level-3"><a class="toc-link" href="#一、现象"><span class="toc-text">一、现象</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#二、结论"><span class="toc-text">二、结论</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#三、排查流程"><span class="toc-text">三、排查流程</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#1、抓包看请求与现象"><span class="toc-text">1、抓包看请求与现象</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#2、本地调试"><span class="toc-text">2、本地调试</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#3、搜索springboot丢失x-forwarded-for的原因"><span class="toc-text">3、搜索springboot丢失x-forwarded-for的原因</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#4、查看RemoteIpValve的执行逻辑"><span class="toc-text">4、查看RemoteIpValve的执行逻辑</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#5、为什么测试环境没事，dev和线上都有问题"><span class="toc-text">5、为什么测试环境没事，dev和线上都有问题</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#处理"><span class="toc-text">处理</span></a></li></ol>
+        
+    </div>
+</aside>
+                
+            </div>
+        </div>
+    </section>
+    <footer class="main-footer">
+    <div class="container">
+        <div class="row">
+        </div>
+    </div>
+</footer>
+<a id="back-to-top" class="icon-btn hide">
+    <i class="fa fa-chevron-up"></i>
+</a>
+    <div class="copyright">
+    <div class="container">
+        <div class="row">
+            <div class="col-sm-12">
+                <div class="busuanzi">
+    
+    访问量:
+    <strong id="busuanzi_value_site_pv">
+        <i class="fa fa-spinner fa-spin"></i>
+    </strong>
+    &nbsp; | &nbsp;
+    访客数:
+    <strong id="busuanzi_value_site_uv">
+        <i class="fa fa-spinner fa-spin"></i>
+    </strong>
+    
+</div>
+            </div>
+            <div class="col-sm-12">
+                <span>Copyright &copy;
+                    2017
+                    
+                </span> |
+                <span>
+                    Powered by <a href="//hexo.io" class="copyright-links" target="_blank" rel="nofollow">Hexo</a>
+                </span> |
+                <span>
+                    Theme by <a href="//github.com/shenliyang/hexo-theme-snippet.git" class="copyright-links" target="_blank" rel="nofollow">Snippet</a>
+                </span>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+<script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+<script src="/js/app.js?rev=@@hash"></script>
+</body>
+</html>
